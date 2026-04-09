@@ -136,7 +136,7 @@ async function initializeApp() {
 
     if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
     if (themeToggleMobileBtn) themeToggleMobileBtn.addEventListener('click', toggleTheme);
-
+    initScrollNav();
   } catch (e) {
     console.error('Initialization error:', e);
 
@@ -215,3 +215,17 @@ async function router() {
 
 // Start
 document.addEventListener('DOMContentLoaded', initializeApp);
+
+function initScrollNav() {
+  let lastScrollTop = 0;
+  const delta = 10;
+  const bottomNav = document.querySelector('.bottom-nav');
+  if (!bottomNav) return;
+  window.addEventListener('scroll', () => {
+    let st = window.pageYOffset || document.documentElement.scrollTop;
+    if (Math.abs(lastScrollTop - st) <= delta) return;
+    if (st > lastScrollTop && st > 100) bottomNav.classList.add('nav-hidden');
+    else bottomNav.classList.remove('nav-hidden');
+    lastScrollTop = st;
+  }, { passive: true });
+}
