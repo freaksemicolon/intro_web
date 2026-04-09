@@ -18,13 +18,27 @@ function formatDate(dateStr) {
 // 1. Right Profile Panel Renderer
 function updateProfilePanel(profile) {
     document.getElementById('profile-name').innerText = profile.name || 'Developer';
-    document.getElementById('profile-major').innerText = `${profile.major || ''} | ${profile.mbti || ''}`;
+    
+    // Split major and mbti into cleaner structure
+    const majorEl = document.getElementById('profile-major');
+    majorEl.style.display = 'flex';
+    majorEl.style.flexDirection = 'column';
+    majorEl.style.gap = '4px';
+    majorEl.style.color = 'var(--accent-color)';
+    majorEl.style.fontWeight = '600';
+    majorEl.style.fontSize = '0.9rem';
+    majorEl.innerHTML = `
+        <span>${profile.major || ''}</span>
+        <span style="opacity: 0.6; font-size: 0.8rem; font-weight: 500;">${profile.mbti || ''}</span>
+    `;
+
     if (profile.profile_image) {
         const img = document.querySelector('#profile-img-container img');
         if (img) img.src = profile.profile_image;
     }
 
     let linksHtml = '';
+    // Use consistent spacing and larger touch area for mobile
     if (profile.github_url) linksHtml += `<a href="${profile.github_url}" class="profile-link" target="_blank"><i class="fab fa-github"></i> GitHub</a>`;
     linksHtml += `<a href="#/blog" class="profile-link"><i class="fas fa-book"></i> Blog</a>`;
     if (profile.notion_url) linksHtml += `<a href="${profile.notion_url}" class="profile-link" target="_blank"><i class="fas fa-book-open"></i> Notion</a>`;
@@ -274,36 +288,36 @@ function _buildBlogList() {
         const tagsStr = (post.tags || []).map(t => `#${t}`).join(' ');
         return `
         <article class="card feed-card" style="display:flex;flex-direction:column;">
-            <div class="feed-header">
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="width:40px;height:40px;border-radius:50%;padding:2px;border:2px solid ${col};">
+            <div class="feed-header" style="padding: 24px 32px;">
+                <div style="display:flex;align-items:center;gap:16px;">
+                    <div style="width:44px;height:44px;border-radius:50%;padding:2px;border:2px solid ${col};">
                         <div style="width:100%;height:100%;border-radius:50%;background:var(--card-bg);display:flex;align-items:center;justify-content:center;">
-                            <i class="fas fa-${post.category === '기술' ? 'code' : 'newspaper'}" style="font-size:0.8rem;color:${col};"></i>
+                            <i class="fas fa-${post.category === '기술' ? 'code' : 'newspaper'}" style="font-size:0.9rem;color:${col};"></i>
                         </div>
                     </div>
                     <div>
-                        <div style="font-weight:700;font-size:0.95rem;display:flex;align-items:center;gap:8px;">
+                        <div style="font-weight:700;font-size:1rem;display:flex;align-items:center;gap:8px;">
                             ${escapeHtml(_blogProfile.name || 'Dev.log')}
                             <span style="font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:999px;background:${col}22;color:${col};border:1px solid ${col}44;">${escapeHtml(post.category || '')}</span>
                         </div>
-                        <div style="font-size:0.8rem;color:var(--text-muted);">${formatDate(post.created_at)}</div>
+                        <div style="font-size:0.85rem;color:var(--text-muted);font-weight:500;">${formatDate(post.created_at)}</div>
                     </div>
                 </div>
-                <i class="fas fa-ellipsis-h" style="color:var(--text-muted);cursor:pointer;"></i>
+                <i class="fas fa-ellipsis-h" style="color:var(--text-muted);cursor:pointer;padding: 8px;"></i>
             </div>
-            <div class="feed-content">
-                <div style="margin-bottom:12px;color:var(--accent-color);font-size:0.85rem;font-weight:600;">${escapeHtml(tagsStr)}</div>
-                <h3 style="font-size:1.4rem;font-weight:800;margin-bottom:12px;letter-spacing:-0.02em;">
+            <div class="feed-content" style="padding: 32px 40px 40px;">
+                <div style="margin-bottom:16px;color:var(--accent-color);font-size:0.9rem;font-weight:600;letter-spacing: 0.02em;">${escapeHtml(tagsStr)}</div>
+                <h3 style="font-size:1.6rem;font-weight:800;margin-bottom:16px;letter-spacing:-0.03em;line-height:1.3;">
                     <a href="#/blog/${post.slug}">${escapeHtml(post.title)}</a>
                 </h3>
-                <p style="font-size:1rem;color:var(--text-color);margin-bottom:20px;line-height:1.6;">${escapeHtml(post.summary)}</p>
-                <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border-color);padding-top:16px;">
-                    <div style="display:flex;gap:16px;font-size:1.3rem;color:var(--text-color);">
-                        <i class="far fa-heart" style="cursor:pointer;transition:color 0.2s;" onmouseover="this.style.color='${col}'" onmouseout="this.style.color='var(--text-color)'"></i>
-                        <i class="far fa-comment" style="cursor:pointer;transition:color 0.2s;" onmouseover="this.style.color='${col}'" onmouseout="this.style.color='var(--text-color)'"></i>
-                        <i class="far fa-paper-plane" style="cursor:pointer;transition:color 0.2s;" onmouseover="this.style.color='${col}'" onmouseout="this.style.color='var(--text-color)'"></i>
+                <p style="font-size:1.05rem;color:var(--text-color);margin-bottom:32px;line-height:1.7;">${escapeHtml(post.summary)}</p>
+                <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border-color);padding-top:24px;">
+                    <div style="display:flex;gap:20px;font-size:1.4rem;color:var(--text-color);">
+                        <i class="far fa-heart" style="cursor:pointer;transition:all 0.2s;" onmouseover="this.style.color='${col}';this.style.transform='scale(1.1)'" onmouseout="this.style.color='var(--text-color)';this.style.transform='scale(1)'"></i>
+                        <i class="far fa-comment" style="cursor:pointer;transition:all 0.2s;" onmouseover="this.style.color='${col}';this.style.transform='scale(1.1)'" onmouseout="this.style.color='var(--text-color)';this.style.transform='scale(1)'"></i>
+                        <i class="far fa-paper-plane" style="cursor:pointer;transition:all 0.2s;" onmouseover="this.style.color='${col}';this.style.transform='scale(1.1)'" onmouseout="this.style.color='var(--text-color)';this.style.transform='scale(1)'"></i>
                     </div>
-                    <a href="#/blog/${post.slug}" style="font-size:0.9rem;color:var(--text-muted);font-weight:500;">자세히 보기</a>
+                    <a href="#/blog/${post.slug}" style="font-size:0.95rem;color:var(--text-muted);font-weight:600;padding: 12px 16px;margin-right:-8px;">자세히 보기</a>
                 </div>
             </div>
         </article>`;
@@ -316,45 +330,47 @@ function _buildBlogList() {
 const Renderer = {
     Home: (profile, specs, posts) => {
         let html = `
-        <section class="hero-section animate-fade-up">
-            <h1 class="hero-title">
+        <section class="hero-section animate-fade-up" style="padding: 60px 0; gap: 32px;">
+            <h1 class="hero-title" style="line-height: 1.1; letter-spacing: -0.05em;">
                 탐구하며<br>배우고 기록하는,<br> <span class="highlight">${escapeHtml(profile.name)}</span>입니다.
             </h1>
-            <p class="hero-subtitle">
+            <p class="hero-subtitle" style="font-size: 1.25rem; line-height: 1.8; max-width: 640px;">
                 문제 해결과 사용자 중심 웹 경험에 관심이 많은 학생입니다. 
-                <br>다양한 개발 스택을 경험하며, 최근에는 컴퓨터 그래픽스 분야에도 흥미를 가지고 있습니다.
+                다양한 개발 스택을 경험하며, 최근에는 컴퓨터 그래픽스 분야에도 흥미를 가지고 있습니다.
             </p>
-            <div style="display:flex; gap:12px; margin-top: 10px;">
-                <a href="#/about" class="btn btn-primary"><i class="fas fa-user-astronaut"></i> 더 알아보기</a>
-                <a href="#/contact" class="btn"><i class="fas fa-paper-plane"></i> 연락하기</a>
+            <div style="display:flex; flex-wrap: wrap; gap:16px; margin-top: 12px;">
+                <a href="#/about" class="btn btn-primary" style="padding: 16px 32px;"><i class="fas fa-user-astronaut"></i> 더 알아보기</a>
+                <a href="#/contact" class="btn" style="padding: 16px 32px;"><i class="fas fa-paper-plane"></i> 연락하기</a>
             </div>
         </section>
 
         <!-- Featured Specs -->
-        <div class="animate-fade-up delay-100" style="margin-top: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; padding: 0 5px;">
+        <div class="animate-fade-up delay-100" style="margin-top: 40px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; padding: 0 10px;">
                 <div>
-                    <h2 style="font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em;">최근 활동 이력</h2>
-                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top:2px;">프로젝트 및 성과 요약</p>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">최근 활동 이력</h2>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; margin-top:4px;">프로젝트 및 성과 요약</p>
                 </div>
-                <a href="#/specs" style="font-size: 0.9rem; font-weight: 600; color: var(--accent-color);">전체 스펙 보기 <i class="fas fa-arrow-right" style="font-size:0.8rem; margin-left:3px;"></i></a>
+                <a href="#/specs" style="font-size: 0.95rem; font-weight: 600; color: var(--accent-color);">전체 보기 <i class="fas fa-arrow-right" style="font-size:0.8rem; margin-left:4px;"></i></a>
             </div>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px;">
         `;
 
         specs.slice(0, 2).forEach((spec, idx) => {
             const col = SPEC_CAT_COLORS[spec.category] || 'var(--accent-color)';
             html += `
-            <article class="card feed-card" style="padding: 24px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <span style="font-size:0.78rem;font-weight:700;padding:4px 10px;border-radius:999px;background:${col}22;color:${col};border:1px solid ${col}44;">${escapeHtml(spec.category)}</span>
-                    <span style="font-size: 0.8rem; color: var(--text-muted);"><i class="far fa-calendar-alt"></i> ${formatDate(spec.date || spec.start_date)}</span>
+            <article class="card feed-card" style="padding: 40px; display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size:0.75rem;font-weight:700;padding:5px 12px;border-radius:999px;background:${col}22;color:${col};border:1px solid ${col}44;">${escapeHtml(spec.category)}</span>
+                    <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;"><i class="far fa-calendar-alt"></i> ${formatDate(spec.date || spec.start_date)}</span>
                 </div>
-                <h3 style="font-size: 1.3rem; font-weight:700; margin-bottom: 6px;"><a href="#/specs/${spec.id}">${escapeHtml(spec.title)}</a></h3>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 12px; font-weight: 500;">@ ${escapeHtml(spec.organization)}</p>
-                <p style="font-size: 0.95rem; color: var(--text-color); line-height: 1.5; margin-bottom: 15px;">${escapeHtml(spec.short_description)}</p>
-                <a href="#/specs/${spec.id}" style="font-size: 0.9rem; color: var(--accent-color); font-weight: 600;">Keep reading →</a>
+                <div>
+                    <h3 style="font-size: 1.5rem; font-weight:800; margin-bottom: 8px; line-height: 1.3;"><a href="#/specs/${spec.id}">${escapeHtml(spec.title)}</a></h3>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; font-weight: 600;">@ ${escapeHtml(spec.organization)}</p>
+                </div>
+                <p style="font-size: 1rem; color: var(--text-color); line-height: 1.7; margin: 8px 0;">${escapeHtml(spec.short_description)}</p>
+                <a href="#/specs/${spec.id}" style="font-size: 0.95rem; color: var(--accent-color); font-weight: 700; margin-top: auto; display: flex; align-items: center; gap: 6px;">Keep reading <i class="fas fa-arrow-right" style="font-size:0.75rem;"></i></a>
             </article>`;
         });
 
@@ -363,34 +379,34 @@ const Renderer = {
         </div>
 
         <!-- Latest Posts -->
-        <div class="animate-fade-up delay-200" style="margin-top: 30px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; padding: 0 5px;">
+        <div class="animate-fade-up delay-200" style="margin-top: 60px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; padding: 0 10px;">
                 <div>
-                    <h2 style="font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em;">최근 개발 블로그</h2>
-                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top:2px;">Dev Log</p>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">최근 개발 블로그</h2>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; margin-top:4px;">Dev Log</p>
                 </div>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div style="display: flex; flex-direction: column; gap: 32px;">
         `;
 
         posts.slice(0, 3).forEach(post => {
             html += `
             <article class="card feed-card" style="display:flex; flex-direction:column;">
-                <div class="feed-header">
-                    <div style="display:flex; align-items:center; gap: 12px;">
-                        <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-color); border: 1px solid var(--border-color); display:flex; align-items:center; justify-content:center;">
-                            <i class="fas fa-terminal" style="font-size: 0.8rem; color: var(--text-muted);"></i>
+                <div class="feed-header" style="padding: 24px 32px;">
+                    <div style="display:flex; align-items:center; gap: 16px;">
+                        <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--bg-color); border: 1px solid var(--border-color); display:flex; align-items:center; justify-content:center;">
+                            <i class="fas fa-terminal" style="font-size: 1rem; color: var(--text-muted);"></i>
                         </div>
                         <div>
-                            <div style="font-weight: 600; font-size:0.95rem;">Dev.log</div>
-                            <div style="font-size: 0.8rem; color: var(--text-muted);">${formatDate(post.created_at)}</div>
+                            <div style="font-weight: 700; font-size:1.05rem;">Dev.log</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">${formatDate(post.created_at)}</div>
                         </div>
                     </div>
                 </div>
-                <div class="feed-content">
-                    <h3 class="feed-title"><a href="#/blog/${post.slug}">${escapeHtml(post.title)}</a></h3>
-                    <p style="font-size: 1rem; color: var(--text-color); margin-bottom: 15px; line-height: 1.6;">${escapeHtml(post.summary)}</p>
-                    <div style="font-size: 0.85rem; color: var(--accent-color); font-weight: 500;">
+                <div class="feed-content" style="padding: 32px 40px 40px;">
+                    <h3 class="feed-title" style="font-size: 1.6rem; font-weight: 800; margin-bottom: 16px;"><a href="#/blog/${post.slug}">${escapeHtml(post.title)}</a></h3>
+                    <p style="font-size: 1.05rem; color: var(--text-color); margin-bottom: 24px; line-height: 1.7;">${escapeHtml(post.summary)}</p>
+                    <div style="font-size: 0.9rem; color: var(--accent-color); font-weight: 600; letter-spacing: 0.02em;">
                         ${(post.tags || []).map(t => `#${t}`).join(' ')}
                     </div>
                 </div>
@@ -403,36 +419,37 @@ const Renderer = {
 
     About: (profile) => {
         return `
-        <div class="animate-fade-up" style="margin-bottom: 10px; padding: 10px 5px;">
-            <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing:-0.03em;">Profile</h1>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">About Me</p>
+        <div class="animate-fade-up" style="margin-bottom: 24px; padding: 0 10px;">
+            <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing:-0.03em;">About</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">안녕하세요, 늘 배움을 즐기는 기록가입니다.</p>
         </div>
         
-        <article class="card animate-fade-up delay-100">
-            <div style="display: flex; gap: 35px; flex-wrap: wrap; align-items: center;">
-                <div style="width: 140px; height: 140px; border-radius: 50%; background: transparent; border: 2px solid var(--accent-color); flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 5px;">
+        <article class="card animate-fade-up delay-100" style="padding: 48px 40px;">
+            <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 32px;">
+                <div style="width: 120px; height: 120px; border-radius: 50%; background: transparent; border: 2px solid var(--accent-color); flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 4px;">
                     <img src="${profile.profile_image || 'data/face.jpg'}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: center;">
                 </div>
-                <div style="flex: 1; min-width: 250px;">
-                    <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 8px; letter-spacing:-0.03em;">${escapeHtml(profile.name)}</h2>
-                    <p style="font-size: 1.05rem; color: var(--accent-color); font-weight: 600; margin-bottom: 16px;">${escapeHtml(profile.major)}</p>
+                <div style="width: 100%;">
+                    <h2 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; letter-spacing:-0.03em;">${escapeHtml(profile.name)}</h2>
+                    <p style="font-size: 1.1rem; color: var(--accent-color); font-weight: 600; margin-bottom: 24px;">${escapeHtml(profile.major)}</p>
                     
-                    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap:wrap;">
-                        <span class="badge"> MBTI: ${escapeHtml(profile.mbti)}</span>
-                        <span class="badge"><i class="fas fa-envelope"></i>&nbsp;&nbsp;&nbsp;${escapeHtml(profile.email)}</span>
+                    <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 0; flex-wrap:wrap;">
+                        <span class="badge" style="padding: 8px 16px; font-size: 0.85rem;">MBTI: ${escapeHtml(profile.mbti)}</span>
+                        <span class="badge" style="padding: 8px 16px; font-size: 0.85rem;"><i class="fas fa-envelope"></i>&nbsp;&nbsp;${escapeHtml(profile.email)}</span>
                     </div>
                 </div>
             </div>
-            <div style="margin-top: 30px; font-size: 1.05rem; line-height: 1.8; color: var(--text-color); border-top: 1px solid var(--border-color); padding-top: 25px;">
+            <div style="margin-top: 48px; font-size: 1.05rem; line-height: 1.9; color: var(--text-color); border-top: 1px solid var(--border-color); padding-top: 40px; word-break: keep-all;">
                 ${escapeHtml(profile.about_text).replace(/\n/g, '<br>')}
             </div>
         </article>
         
-        <article class="card animate-fade-up delay-200" style="margin-top: 24px;">
-            <h3 style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; font-size: 1.4rem;">
+        <article class="card animate-fade-up delay-200" style="margin-top: 32px; padding: 44px;">
+            <h3 style="display: flex; align-items: center; gap: 14px; margin-bottom: 32px; font-size: 1.5rem; font-weight: 700;">
                 <i class="fas fa-graduation-cap" style="color: var(--accent-color);"></i> Education
             </h3>
-            <div style="position:relative; margin-left:15px; border-left: 2px solid rgba(20, 184, 166, 0.2); padding-left: 25px; white-space: pre-wrap; line-height: 2.2; font-size: 1rem;">${escapeHtml(profile.education_text)}
+            <div style="position:relative; margin-left:15px; border-left: 2px solid rgba(0, 209, 178, 0.2); padding-left: 28px; white-space: pre-wrap; line-height: 2.4; font-size: 1rem; color: var(--text-color);">
+                ${escapeHtml(profile.education_text)}
             </div>
         </article>
         `;
@@ -446,14 +463,16 @@ const Renderer = {
         _ss.dragSrcId = null;
 
         return `
-        <div class="animate-fade-up" style="margin-bottom: 20px; padding: 10px 5px;">
+        <div class="animate-fade-up" style="margin-bottom: 32px; padding: 0 10px;">
             <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing:-0.03em;">Specs</h1>
             <p style="color: var(--text-muted); font-size: 0.95rem;">경험과 성과 기록의 아카이브</p>
         </div>
 
-        <div class="card animate-fade-up delay-100" style="padding: 24px 28px;">
-            <div id="specs-controls">${_buildSpecsControls()}</div>
-            <div id="specs-list-body" style="transition: opacity 0.2s ease, transform 0.2s ease;">${_buildSpecsList()}</div>
+        <div class="card animate-fade-up delay-100" style="padding: 44px 40px;">
+            <div id="specs-controls" style="margin-bottom: 32px;">${_buildSpecsControls()}</div>
+            <div id="specs-list-body" style="transition: opacity 0.2s ease, transform 0.2s ease; display: flex; flex-direction: column; gap: 4px;">
+                ${_buildSpecsList()}
+            </div>
         </div>
         `;
     },
@@ -461,42 +480,42 @@ const Renderer = {
     SpecDetail: (spec, markdownHtml) => {
         const col = SPEC_CAT_COLORS[spec.category] || 'var(--accent-color)';
         return `
-        <div class="animate-fade-up" style="margin-bottom: 24px;">
-            <a href="#/specs" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem; color: var(--text-muted); transition: color 0.2s;"
+        <div class="animate-fade-up" style="margin-bottom: 24px; padding: 0 10px;">
+            <a href="#/specs" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.95rem; color: var(--text-muted); transition: color 0.2s; padding: 10px 0;"
                onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='var(--text-muted)'">
-                <i class="fas fa-arrow-left"></i> 스펙 목록으로
+                <i class="fas fa-arrow-left"></i> 목록으로 돌아가기
             </a>
         </div>
 
-        <article class="card animate-fade-up delay-100" style="padding: 0; overflow: hidden; margin-bottom: 60px;">
-            <!-- Notion-style page header -->
-            <div style="padding: 60px 40px 40px; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.015);">
-                <div style="display:flex; align-items:center; gap:12px; margin-bottom:24px;">
+        <article class="card animate-fade-up delay-100" style="padding: 0; overflow: hidden; margin-bottom: 80px;">
+            <!-- Premium Header Section -->
+            <div style="padding: 80px 48px 56px; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.012);">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:28px;">
                     <span style="font-size:0.8rem;font-weight:700;padding:6px 14px;border-radius:999px;background:${col}22;color:${col};border:1px solid ${col}44;">${escapeHtml(spec.category)}</span>
-                    <span style="font-size:0.9rem; color:var(--text-muted); font-weight: 500;">${formatDate(spec.date)}</span>
+                    <span style="font-size:0.95rem; color:var(--text-muted); font-weight: 600;">${formatDate(spec.date)}</span>
                 </div>
-                <h1 style="font-size: 2.8rem; font-weight: 800; letter-spacing:-0.04em; margin-bottom: 24px; line-height:1.2; color: var(--text-color);">${escapeHtml(spec.title)}</h1>
-                <div style="display:flex; align-items:center; gap:16px; color:var(--text-muted); font-size:1rem; font-weight: 500;">
-                    <i class="fas fa-building" style="color:var(--accent-color); font-size: 1.1rem;"></i>
+                <h1 style="font-size: 2.6rem; font-weight: 800; letter-spacing:-0.04em; margin-bottom: 32px; line-height:1.2; color: var(--text-color);">${escapeHtml(spec.title)}</h1>
+                <div style="display:flex; align-items:center; gap:16px; color:var(--text-muted); font-size:1.1rem; font-weight: 600;">
+                    <i class="fas fa-building" style="color:var(--accent-color); font-size: 1.2rem;"></i>
                     <span>${escapeHtml(spec.organization)}</span>
                 </div>
             </div>
 
             <!-- Feature Image -->
             ${spec.image ? `
-            <div class="feature-image-container">
-                <img src="${spec.image}" alt="${escapeHtml(spec.title)}">
+            <div style="width: 100%; max-height: 500px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--border-color);">
+                <img src="${spec.image}" alt="${escapeHtml(spec.title)}" style="width: 100%; height: 100%; object-fit: contain;">
             </div>` : ''}
 
             <!-- Content body -->
-            <div class="feed-content" style="padding: 40px;">
+            <div class="feed-content" style="padding: 56px 48px;">
                 <div class="markdown-content">
                     ${markdownHtml}
                 </div>
 
                 ${spec.link ? `
-                <div style="margin-top: 60px; padding-top: 30px; border-top: 1px solid var(--border-color); text-align: center;">
-                    <a href="${spec.link}" target="_blank" class="btn btn-primary" style="padding: 14px 32px;"><i class="fas fa-external-link-alt"></i> 프로젝트 상세 보기</a>
+                <div style="margin-top: 80px; padding-top: 40px; border-top: 1px solid var(--border-color); text-align: center;">
+                    <a href="${spec.link}" target="_blank" class="btn btn-primary" style="padding: 16px 36px; font-size: 1rem;"><i class="fas fa-external-link-alt"></i> 결과물 확인하기</a>
                 </div>` : ''}
             </div>
         </article>
@@ -529,42 +548,42 @@ const Renderer = {
         let tagsStr = (post.tags || []).map(t => `#${t}`).join(' ');
         const col = BLOG_CAT_COLORS[post.category] || 'var(--accent-color)';
         return `
-        <div class="animate-fade-up" style="margin-bottom: 24px;">
-            <a href="#/blog" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem; color: var(--text-muted); transition: color 0.2s;"
+        <div class="animate-fade-up" style="margin-bottom: 24px; padding: 0 10px;">
+            <a href="#/blog" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.95rem; color: var(--text-muted); transition: color 0.2s; padding: 10px 0;"
                onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='var(--text-muted)'">
                 <i class="fas fa-arrow-left"></i> 블로그 목록으로
             </a>
         </div>
         
-        <article class="card feed-card animate-fade-up delay-100" style="overflow: hidden; margin-bottom: 60px;">
-            <div class="feed-header" style="padding: 40px 40px 30px; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.015);">
-                 <div style="display: flex; align-items: center; gap: 20px;">
-                    <div style="width: 56px; height: 56px; border-radius: 50%; padding:3px; border: 2px solid var(--accent-color);">
+        <article class="card feed-card animate-fade-up delay-100" style="overflow: hidden; margin-bottom: 80px;">
+            <div class="feed-header" style="padding: 60px 48px 40px; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.012);">
+                 <div style="display: flex; align-items: center; gap: 24px;">
+                    <div style="width: 64px; height: 64px; border-radius: 50%; padding:3px; border: 2px solid var(--accent-color);">
                         <div style="width:100%; height:100%; border-radius:50%; background:var(--card-bg); display:flex; align-items:center; justify-content:center; overflow: hidden;">
                             <img src="data/face.jpg" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                     </div>
                     <div>
-                        <div style="font-weight: 700; font-size: 1.15rem; display: flex; align-items: center; gap: 10px;">
+                        <div style="font-weight: 800; font-size: 1.25rem; display: flex; align-items: center; gap: 12px;">
                             ${escapeHtml(profile.name || "JangSW")}
-                            <span style="font-size:0.75rem;font-weight:700;padding:3px 10px;border-radius:999px;background:${col}22;color:${col};border:1px solid ${col}44;">${escapeHtml(post.category || '')}</span>
+                            <span style="font-size:0.75rem;font-weight:700;padding:4px 12px;border-radius:999px;background:${col}22;color:${col};border:1px solid ${col}44;">${escapeHtml(post.category || '')}</span>
                         </div>
-                        <div style="font-size: 0.9rem; color: var(--text-muted); margin-top:4px; font-weight: 500;">${formatDate(post.created_at)}</div>
+                        <div style="font-size: 0.95rem; color: var(--text-muted); margin-top:6px; font-weight: 600;">${formatDate(post.created_at)}</div>
                     </div>
                 </div>
             </div>
 
             <!-- Feature Image -->
             ${post.image ? `
-            <div class="feature-image-container">
-                <img src="${post.image}" alt="${escapeHtml(post.title)}">
+            <div style="width: 100%; max-height: 500px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--border-color);">
+                <img src="${post.image}" alt="${escapeHtml(post.title)}" style="width: 100%; height: 100%; object-fit: contain;">
             </div>` : ''}
             
-            <div class="feed-content" style="padding: 40px;">
-                <div style="margin-bottom: 30px; color: var(--accent-color); font-weight:600; font-size: 1.1rem; letter-spacing: 0.05em;">
+            <div class="feed-content" style="padding: 56px 48px;">
+                <div style="margin-bottom: 32px; color: var(--accent-color); font-weight:700; font-size: 1.15rem; letter-spacing: 0.05em;">
                     ${escapeHtml(tagsStr)}
                 </div>
-                <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 40px; letter-spacing:-0.04em; line-height: 1.2;">${escapeHtml(post.title)}</h1>
+                <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 56px; letter-spacing:-0.05em; line-height: 1.2; color: var(--text-color);">${escapeHtml(post.title)}</h1>
                 
                 <div class="markdown-content">
                     ${markdownHtml}
@@ -576,41 +595,47 @@ const Renderer = {
 
     Contact: (profile) => {
         return `
-        <div class="animate-fade-up" style="margin-bottom: 15px; padding: 10px 5px;">
+        <div class="animate-fade-up" style="margin-bottom: 32px; padding: 0 10px;">
             <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing:-0.03em;">Contact</h1>
             <p style="color: var(--text-muted); font-size: 0.95rem;">언제든 새로운 기술과 협업 이야기를 환영합니다!</p>
         </div>
         
-        <div style="display: flex; flex-direction: column; gap: 24px;">
-            <article class="card animate-fade-up delay-100" style="display: flex; align-items: center; gap: 25px; padding: 30px;">
-                <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(20, 184, 166, 0.1); color: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+            <article class="card animate-fade-up delay-100" style="display: flex; align-items: center; gap: 32px; padding: 48px;">
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(0, 209, 178, 0.1); color: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 2.2rem; flex-shrink: 0;">
                     <i class="fas fa-paper-plane"></i>
                 </div>
                 <div>
-                    <div style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 6px;">Direct Email</div>
-                    <a href="mailto:${escapeHtml(profile.email)}" style="font-size: 1.4rem; font-weight: 700; color: var(--text-color);">${escapeHtml(profile.email)}</a>
+                    <div style="font-size: 1.15rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 500;">Direct Email</div>
+                    <a href="mailto:${escapeHtml(profile.email)}" style="font-size: 1.6rem; font-weight: 800; color: var(--text-color); letter-spacing: -0.02em;">${escapeHtml(profile.email)}</a>
                 </div>
             </article>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
                 ${profile.github_url ? `
-                <a href="${profile.github_url}" target="_blank" class="card animate-fade-up delay-200" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; padding: 40px; text-align:center;">
-                    <i class="fab fa-github" style="font-size: 3.5rem; color: var(--text-color);"></i>
-                    <span style="font-weight: 700; font-size: 1.1rem; margin-top:10px;">GitHub</span>
-                    <span style="font-size: 0.85rem; color: var(--text-muted);">프로젝트 & 소스코드</span>
+                <a href="${profile.github_url}" target="_blank" class="card animate-fade-up delay-200" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 56px 40px; text-align:center;">
+                    <i class="fab fa-github" style="font-size: 4rem; color: var(--text-color);"></i>
+                    <div style="margin-top: 10px;">
+                        <span style="font-weight: 800; font-size: 1.25rem; display: block; margin-bottom: 4px;">GitHub</span>
+                        <span style="font-size: 0.95rem; color: var(--text-muted);">프로젝트 & 소스코드</span>
+                    </div>
                 </a>` : ''}
                 
-                <a href="#/blog" class="card animate-fade-up delay-300" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; padding: 40px; text-align:center;">
-                    <i class="fas fa-book" style="font-size: 3.5rem; color: var(--text-color);"></i>
-                    <span style="font-weight: 700; font-size: 1.1rem; margin-top:10px;">Blog</span>
-                    <span style="font-size: 0.85rem; color: var(--text-muted);">탐구와 학습의 기록</span>
+                <a href="#/blog" class="card animate-fade-up delay-300" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 56px 40px; text-align:center;">
+                    <i class="fas fa-book" style="font-size: 4rem; color: var(--text-color);"></i>
+                    <div style="margin-top: 10px;">
+                        <span style="font-weight: 800; font-size: 1.25rem; display: block; margin-bottom: 4px;">Blog</span>
+                        <span style="font-size: 0.95rem; color: var(--text-muted);">탐구와 학습의 기록</span>
+                    </div>
                 </a>
                 
                 ${profile.notion_url ? `
-                <a href="${profile.notion_url}" target="_blank" class="card animate-fade-up delay-400" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; padding: 40px; text-align:center;">
-                    <i class="fas fa-book-open" style="font-size: 3.5rem; color: var(--text-color);"></i>
-                    <span style="font-weight: 700; font-size: 1.1rem; margin-top:10px;">Notion</span>
-                    <span style="font-size: 0.85rem; color: var(--text-muted);">상세 이력서 보기</span>
+                <a href="${profile.notion_url}" target="_blank" class="card animate-fade-up delay-400" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 56px 40px; text-align:center;">
+                    <i class="fas fa-book-open" style="font-size: 4rem; color: var(--text-color);"></i>
+                    <div style="margin-top: 10px;">
+                        <span style="font-weight: 800; font-size: 1.25rem; display: block; margin-bottom: 4px;">Notion</span>
+                        <span style="font-size: 0.95rem; color: var(--text-muted);">상세 이력서 보기</span>
+                    </div>
                 </a>` : ''}
             </div>
         </div>
