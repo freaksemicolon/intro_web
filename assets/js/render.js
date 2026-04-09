@@ -497,8 +497,7 @@ const Renderer = {
             <h3 style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; font-size: 1.15rem; font-weight: 700;">
                 <i class="fas fa-graduation-cap" style="color: var(--accent-color);"></i> Education
             </h3>
-            <div style="position:relative; margin-left:12px; border-left: 2px solid rgba(0, 209, 178, 0.2); padding-left: 24px; white-space: pre-wrap; line-height: 2.2; font-size: 0.95rem; color: var(--text-color);">
-                ${escapeHtml(profile.education_text)}
+            <div style="position:relative; margin-left:12px; border-left: 2px solid rgba(0, 209, 178, 0.2); padding-left: 24px; white-space: pre-wrap; line-height: 2.2; font-size: 0.95rem; color: var(--text-color);">${escapeHtml(profile.education_text)}
             </div>
         </article>
         `;
