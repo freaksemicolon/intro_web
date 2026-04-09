@@ -186,9 +186,6 @@ function _buildSpecsList() {
              ondragover="specDragOver(event)"
              ondrop="specDrop(event,${spec.id})"
              ondragend="specDragEnd(event)"
-             style="display:grid;grid-template-columns:28px 2fr 1fr 120px 110px;align-items:center;gap:0;padding:13px 16px 13px 0;border-bottom:1px solid var(--border-color);transition:background 0.15s,opacity 0.2s;border-radius:8px;cursor:pointer;"
-             onmouseover="this.style.background='var(--hover-bg)'"
-             onmouseout="this.style.background='transparent'"
              onclick="if(event.target.closest('.drag-handle'))return;window.location.hash='#/specs/${spec.id}'">
             <div class="drag-handle" onclick="event.stopPropagation()" style="display:flex;align-items:center;justify-content:center;cursor:grab;color:var(--text-muted);opacity:0.25;padding-left:8px;transition:opacity 0.2s;"
                  onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='0.25'">
@@ -205,7 +202,7 @@ function _buildSpecsList() {
     }).join('');
 
     return `
-    <div style="display:grid;grid-template-columns:28px 2fr 1fr 120px 110px;gap:0;padding:8px 16px 8px 0;font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid var(--border-color);margin-bottom:4px;">
+    <div class="spec-header">
         <span></span><span>제목</span><span>소속/기관</span><span>카테고리</span><span>날짜</span>
     </div>
     ${rows}`;
