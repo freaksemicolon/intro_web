@@ -494,12 +494,43 @@ a:hover {
 }
 
 /* Mobile/Desktop Visibility Utilities */
-.mobile-only { display: none; }
-.desktop-only { display: flex; }
+.mobile-only { display: none !important; }
+.desktop-only { display: flex !important; }
 
 @media (max-width: 768px) {
-    .mobile-only { display: block; }
-    .desktop-only { display: none; }
+    .mobile-only { display: block !important; }
+    .mobile-only.flex { display: flex !important; }
+    .desktop-only { display: none !important; }
+}
+
+/* Compact Select UI - App Style */
+.compact-select {
+    appearance: none;
+    background: var(--card-bg);
+    color: var(--text-color);
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0 40px 0 16px;
+    height: 44px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+}
+
+.compact-select:hover, .compact-select:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(0, 209, 178, 0.1);
+}
+
+.compact-select option {
+    background: #1a1f2b; /* Force dark background for options */
+    color: #fff;
 }
 
 /* Markdown Rendering Customization - Refined for Readability */

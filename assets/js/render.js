@@ -154,12 +154,12 @@ function specDragEnd(e) {
 function _buildSpecsControls() {
     const isAll = _ss.cats.size === 0;
     
-    // Desktop Pills
+    // --- 🖥️ Desktop UI: Pills & Separate Sort ---
     const pills = [`<button onclick="specSelectAll()" style="${_pillStyle(isAll)}">전체</button>`];
     SPEC_CATS.forEach(cat => {
         const active = _ss.cats.has(cat);
         const col = SPEC_CAT_COLORS[cat] || 'var(--accent-color)';
-        pills.push(`<button onclick="specToggleCat('${cat}')" class="desktop-pill" style="
+        pills.push(`<button onclick="specToggleCat('${cat}')" style="
             display:inline-flex;align-items:center;gap:6px;padding:7px 16px;
             border-radius:999px;font-size:0.85rem;font-weight:600;cursor:pointer;
             border:1.5px solid ${active ? col : 'var(--border-color)'};
@@ -169,44 +169,61 @@ function _buildSpecsControls() {
         "><span style="width:7px;height:7px;border-radius:50%;background:${col};display:inline-block;"></span>${cat}</button>`);
     });
 
-    // Mobile Dropdown Options
-    const catOpts = [`<option value="all" ${isAll ? 'selected' : ''}>전체 카테고리</option>`];
-    SPEC_CATS.forEach(cat => {
-        catOpts.push(`<option value="${cat}" ${_ss.cats.has(cat) ? 'selected' : ''}>${cat}</option>`);
-    });
-
-    const sortByOpts = [['priority', '기본 순서'], ['date', '날짜순']].map(([v, l]) =>
+    const sortByOptsDesktop = [['priority', '기본 순서'], ['date', '날짜순']].map(([v, l]) =>
         `<option value="${v}" ${_ss.sortBy === v ? 'selected' : ''}>${l}</option>`).join('');
     
     const dir1 = _ss.sortBy === 'date' ? '오래된순' : '중요순';
     const dir2 = _ss.sortBy === 'date' ? '최신순' : '역순';
 
-    return `
-    <div class="specs-controls-wrapper" style="display:flex; flex-direction:column; gap:20px;">
-        <div class="filter-row" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
-            <!-- Desktop Only Pills -->
-            <div class="desktop-only" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                ${pills.join('')}
-            </div>
-
-            <!-- Mobile Only Dropdown -->
-            <div class="mobile-only" style="width:100%;">
-                <select class="mobile-dropdown" onchange="this.value === 'all' ? specSelectAll() : specToggleCat(this.value, true)" style="width:100%; appearance:none; background:var(--card-bg); color:var(--text-color); border:1.5px solid var(--border-color); border-radius:12px; padding:12px 16px; font-size:0.95rem; font-weight:600; cursor:pointer; outline:none; background-image:url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat:no-repeat; background-position:right%2012px%20center; background-size:18px;">
-                    ${catOpts.join('')}
-                </select>
-            </div>
-
-            <div class="sort-controls" style="display:flex; align-items:center; gap:8px; flex-grow:1; justify-content:flex-end;">
-                <select onchange="specSetSort(this.value)" style="background:var(--card-bg); color:var(--text-color); border:1.5px solid var(--border-color); border-radius:10px; padding:8px 12px; font-size:0.88rem; font-weight:600; cursor:pointer; outline:none; appearance:none; padding-right:32px; background-image:url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat:no-repeat; background-position:right%2010px%20center; background-size:16px;">
-                    ${sortByOpts}
-                </select>
-                <div style="display:flex;">
-                    <button onclick="specSetDir('asc')" style="${_sortBtnStyle(_ss.sortDir === 'asc')} border-radius:10px 0 0 10px; padding: 8px 14px;">${dir1}</button>
-                    <button onclick="specSetDir('desc')" style="${_sortBtnStyle(_ss.sortDir === 'desc')} border-radius:0 10px 10px 0; margin-left:-1.5px; padding: 8px 14px;">${dir2}</button>
-                </div>
+    const desktopUI = `
+    <div class="desktop-only" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom: 24px;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            ${pills.join('')}
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+            <select onchange="specSetSort(this.value)" class="compact-select" style="height:38px; padding:0 32px 0 12px; font-size:0.88rem;">
+                ${sortByOptsDesktop}
+            </select>
+            <div style="display:flex;">
+                <button onclick="specSetDir('asc')" style="${_sortBtnStyle(_ss.sortDir === 'asc')} border-radius:8px 0 0 8px; padding: 6px 12px;">${dir1}</button>
+                <button onclick="specSetDir('desc')" style="${_sortBtnStyle(_ss.sortDir === 'desc')} border-radius:0 8px 8px 0; margin-left:-1px; padding: 6px 12px;">${dir2}</button>
             </div>
         </div>
     </div>`;
+
+    // --- 📱 Mobile UI: Compact Side-by-Side Dropdowns ---
+    const catOpts = [`<option value="all" ${isAll ? 'selected' : ''}>카테고리: 전체</option>`];
+    SPEC_CATS.forEach(cat => {
+        catOpts.push(`<option value="${cat}" ${_ss.cats.has(cat) ? 'selected' : ''}>${cat}</option>`);
+    });
+
+    // Unify Sort Type + Direction for cleaner Mobile UI
+    const mobileSortVal = `${_ss.sortBy}_${_ss.sortDir}`;
+    const sortOptsMobile = [
+        { v: 'priority_asc', l: '기본 순서 (중요순)' },
+        { v: 'priority_desc', l: '기본 순서 (역순)' },
+        { v: 'date_desc', l: '날짜순 (최신순)' },
+        { v: 'date_asc', l: '날짜순 (오래된순)' }
+    ].map(opt => `<option value="${opt.v}" ${mobileSortVal === opt.v ? 'selected' : ''}>${opt.l}</option>`).join('');
+
+    const mobileUI = `
+    <div class="mobile-only flex" style="gap:10px; margin-bottom: 20px; width:100%;">
+        <select class="compact-select" onchange="this.value === 'all' ? specSelectAll() : specToggleCat(this.value, true)" style="flex:1.2; min-width:0;">
+            ${catOpts.join('')}
+        </select>
+        <select class="compact-select" onchange="specSetMobileSort(this.value)" style="flex:1; min-width:0;">
+            ${sortOptsMobile}
+        </select>
+    </div>`;
+
+    return desktopUI + mobileUI;
+}
+
+function specSetMobileSort(val) {
+    const [by, dir] = val.split('_');
+    _ss.sortBy = by;
+    _ss.sortDir = dir;
+    _ssRerender(true);
 }
 
 function _pillStyle(active) {
