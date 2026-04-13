@@ -1,1 +1,2 @@
 - [첫 블로그 글 작성 테스트](post-1.md)
+- [Rootive_news](rootive_news.md)
