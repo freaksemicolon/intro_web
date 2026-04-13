@@ -1,5 +1,5 @@
 ---
-title: lovable campus leader 활동
+title: lovable campus leader member 활동
 organization: lovable
 category: 대외활동
 date: 2026-03-10
@@ -7,7 +7,7 @@ short_description: Lovable 플랫폼 확산 및 커뮤니티 활동 참여
 ---
 
 # 프로젝트 개요
-Lovable Campus Leader로 활동하며  
+Lovable Campus Leader-member로 활동하며  
 Lovable 플랫폼을 활용한 개발 경험을 공유하고  
 학생 커뮤니티 내 확산 활동을 수행하였습니다.  
 
