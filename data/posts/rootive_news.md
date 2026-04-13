@@ -27,8 +27,10 @@ summary: AI 기반 홈가드닝 앱 프로젝트가 다수 언론에 보도되�
 - [진일보](https://www.jnilbo.com/news/articleView.html?idxno=90000030135)
 - [전자신문](https://www.etnews.com/20260413000020)
 - [광남일보](http://www.gwangnam.co.kr/article.php?aid=1776039839534926185)
----
+
 등등(위 텍스트를 누르면 기사로 연결됩니다!)
+---
+
 ---
 
 ![프로젝트 이미지](data/posts/img/rootive_news.png)
