@@ -1,0 +1,11 @@
+{
+  "name": "seokwoo-static-portfolio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node tools/portfolio-check.mjs",
+    "content:fix": "node tools/portfolio-check.mjs --write",
+    "content:links": "node tools/portfolio-check.mjs --links",
+    "sitemap": "node tools/portfolio-check.mjs --sitemap"
+  }
+}

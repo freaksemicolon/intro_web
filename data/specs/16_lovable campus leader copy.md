@@ -1,4 +1,6 @@
 ---
+status: completed
+updated: 2026-04-13
 title: lovable campus leader member 활동
 organization: lovable
 category: 대외활동

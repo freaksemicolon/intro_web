@@ -1,4 +1,6 @@
 ---
+status: completed
+updated: 2026-04-09
 title: GIST AI-agent team GEAR 활동
 organization: 광주과학기술원 AI대학원
 category: 대외활동

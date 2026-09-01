@@ -1,4 +1,6 @@
 ---
+status: completed
+updated: 2026-04-09
 title: Full Stack JavaScript Track – Treehouse 수료
 organization: Treehouse
 category: 교육

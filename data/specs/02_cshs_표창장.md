@@ -1,4 +1,6 @@
 ---
+status: completed
+updated: 2026-04-08
 title: 창원과학고등학교 표창장
 organization: 창원과학고등학교
 category: 수상

@@ -1,4 +1,6 @@
 ---
+status: completed
+updated: 2026-04-09
 title: 제 1회 NamuXSK해커톤 우수상 수상
 organization: SK인텔릭스, 멋쟁이사자처럼
 category: 수상

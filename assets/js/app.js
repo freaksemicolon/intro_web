@@ -1,231 +1,133 @@
-// Global State
-const appData = {
-  profile: null,
-  specs: [],
-  blog: []
-};
+const state={profile:null,specs:[],posts:[],lang:localStorage.getItem('lang')||'ko',view:localStorage.getItem('projectView')||'grid',copy:{},about:null};
+const $=s=>document.querySelector(s);
+const esc=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const fmt=d=>d?String(d).replaceAll('-','.').slice(0,10):'Present';
+const t=(ko,en)=>state.lang==='ko'?ko:en;
+const statusLabel=s=>({development:t('개발 중','In development'),developing:t('개발 중','In development'),completed:t('완료','Completed'),complete:t('완료','Completed'),operating:t('운영 중','Operating'),live:t('운영 중','Operating')}[(s||'').toLowerCase()]||s||t('완료','Completed'));
+const slugify=s=>(s||'section').toLowerCase().trim().replace(/[^\w\u3131-\uD79D]+/g,'-').replace(/^-|-$/g,'');
+function showToast(message){const el=$('#toast');if(!el)return;el.textContent=message;el.classList.add('show');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>el.classList.remove('show'),1800)}
 
-// Theme Logic
-function updateThemeIcon() {
-  const theme = document.documentElement.getAttribute('data-theme');
-  const iconClass = theme === 'dark' ? 'fa-sun' : 'fa-moon';
-
-  document.querySelectorAll('#theme-toggle i, #theme-toggle-mobile i').forEach(icon => {
-    icon.className = `fas ${iconClass}`;
+function parseFM(text){const out={metadata:{},body:text};if(!text.startsWith('---'))return out;const parts=text.split('---');if(parts.length<3)return out;parts[1].trim().split('\n').forEach(line=>{const i=line.indexOf(':');if(i>0)out.metadata[line.slice(0,i).trim()]=line.slice(i+1).trim().replace(/^["']|["']$/g,'')});out.body=parts.slice(2).join('---').trim();return out}
+async function loadIndex(dir){try{const idx=await fetch(`data/${dir}/index.md`);const text=await idx.text();const files=[...text.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)].map(x=>x[1]);return (await Promise.all(files.map(async file=>{const r=await fetch(`data/${dir}/${file}`);if(!r.ok)return null;const {metadata,body}=parseFM(await r.text());return{...metadata,body,file,id:decodeURIComponent(file)}}))).filter(Boolean)}catch(e){console.warn(e);return[]}}
+async function loadMarkdown(path){try{const r=await fetch(path);if(!r.ok)return null;return parseFM(await r.text())}catch{return null}}
+const SPEC_IMAGES={'01_':'data/specs/img/발명상.png','06_':'data/specs/img/CSG.png','07_':'data/specs/img/나무x우수상_돈.png','08_':'data/specs/img/sw창업아이디어톤_돈.png','09_':'data/specs/img/무한도전_특별.png','10_':'data/specs/img/블레이버스_해커톤_수료.png','11_':'data/specs/img/머신러닝_수료증.png','15_':'data/specs/img/나무x해커톤.png'};
+async function loadLanguageContent(){const [copy,about]=await Promise.all([loadMarkdown(`data/i18n/${state.lang}.md?v=6`),loadMarkdown(`data/about/${state.lang}.md?v=6`)]);state.copy=copy?.metadata||{};state.about=about}
+async function init(){state.profile=window.PROFILE_DATA||{};[state.specs,state.posts]=await Promise.all([loadIndex('specs'),loadIndex('posts')]);state.specs.forEach(s=>{if(s.image)return;const key=Object.keys(SPEC_IMAGES).find(k=>s.file.startsWith(k));if(key)s.image=SPEC_IMAGES[key]});await loadLanguageContent();const saved=localStorage.getItem('theme')||'light';document.documentElement.dataset.theme=saved;wireShell();router()}
+function wireShell(){const p=state.profile;$('#footerEmail').href=`mailto:${p.email}`;$('#footerGithub').href=p.github_url;$('#themeToggle').onclick=()=>{const n=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=n;localStorage.setItem('theme',n)};$('#langToggle').textContent=state.lang==='ko'?'English':'한국어';$('#langToggle').onclick=async()=>{state.lang=state.lang==='ko'?'en':'ko';localStorage.setItem('lang',state.lang);await loadLanguageContent();$('#langToggle').textContent=state.lang==='ko'?'English':'한국어';router()};const menu=$('#mobileMenu'),btn=$('#menuBtn');const close=()=>{menu.hidden=true;btn.setAttribute('aria-expanded','false');document.body.style.overflow=''};btn.onclick=()=>{menu.hidden=false;btn.setAttribute('aria-expanded','true');document.body.style.overflow='hidden';menu.querySelector('a').focus()};$('#menuClose').onclick=close;menu.querySelectorAll('a').forEach(a=>a.onclick=close);let touchX=0;menu.addEventListener('touchstart',e=>touchX=e.changedTouches[0].clientX,{passive:true});menu.addEventListener('touchend',e=>{if(e.changedTouches[0].clientX-touchX>70)close()},{passive:true});document.addEventListener('keydown',e=>{if(e.key==='Escape'){close();$('#commandPalette')?.close()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openCommandPalette()}});$('#backToTop').onclick=()=>scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});let last=0;addEventListener('scroll',()=>{const y=scrollY,max=document.documentElement.scrollHeight-innerHeight;$('#header').classList.toggle('scrolled',y>40);$('#header').classList.toggle('hidden',y>last&&y>130);$('#backToTop').classList.toggle('show',y>600);$('#readingProgress').style.transform=`scaleX(${max>0?y/max:0})`;last=y},{passive:true});addEventListener('hashchange',router)}
+function openCommandPalette(){const d=$('#commandPalette'),input=$('#commandInput');if(!d)return;const pages=[['Home','#/'],['About','#/about'],['Experience','#/career'],['Social','#/social'],['Résumé','#/resume']],projects=state.specs.map(s=>[s.title,`#/project/${encodeURIComponent(s.id)}`]);const draw=()=>{const q=(input.value||'').toLowerCase();$('#commandResults').innerHTML=[...pages,...projects].filter(x=>x[0].toLowerCase().includes(q)).slice(0,10).map(x=>`<a href="${x[1]}">${esc(x[0])}<span>↗</span></a>`).join('')};input.oninput=draw;$('#commandResults').onclick=()=>d.close();draw();d.showModal();setTimeout(()=>input.focus(),20)}
+function navActive(route){document.querySelectorAll('[data-route]').forEach(a=>a.classList.toggle('active',route.startsWith(a.dataset.route)))}
+function routeName(){return (location.hash.replace(/^#\/?/,'').split('/')[0]||'home')}
+function router(){scrollTo({top:0,behavior:'instant'});const hash=location.hash||'#/';const parts=hash.replace('#/','').split('/');const route=parts[0]||'home';navActive(route);const titles={home:'장석우 · Product Engineer',about:`${t('소개','About')} · 장석우`,career:`${t('이력','Experience')} · 장석우`,project:`${t('프로젝트','Projects')} · 장석우`,social:`${t('연락하기','Contact')} · 장석우`,resume:`${t('이력서','Résumé')} · 장석우`};document.title=titles[route]||`404 · 장석우`;if(route==='home')renderHomeV2();else if(route==='about')renderAbout();else if(route==='project'&&parts[1])renderDetail(decodeURIComponent(parts.slice(1).join('/')));else if(route==='project')renderProjects();else if(route==='career')renderCareer();else if(route==='social')renderSocial();else if(route==='resume')renderResumeEditable();else render404();$('#main').classList.remove('page-enter');void $('#main').offsetWidth;$('#main').classList.add('page-enter');document.documentElement.lang=state.lang;setTimeout(()=>{initMotion();initExtraMotion();document.querySelectorAll('a[target="_blank"]').forEach(a=>{a.title=t('새 창에서 열기','Opens in a new tab')})},40)}
+function tags(s){return (s.tags||s.category||'Product, Engineering').split(',').slice(0,4).map(x=>`<span class="tag">${esc(x.trim())}</span>`).join('')}
+function projectCard(s,i){return `<article class="project-card view-target" data-index="${String(i+1).padStart(2,'0')}"><a href="#/project/${encodeURIComponent(s.id)}" aria-label="${esc(s.title)} 상세 보기"><div class="project-media">${s.image?`<img loading="lazy" decoding="async" src="${esc(s.image)}" alt="${esc(s.title)} 대표 이미지">`:`<span class="number">${String(i+1).padStart(2,'0')}</span>`}<span class="project-status status-${esc((s.status||'completed').toLowerCase())}">${esc(statusLabel(s.status))}</span></div><h3>${esc(s.title||s.id)}</h3><p>${esc(s.short_description||s.summary||s.organization||t('프로젝트를 통해 문제를 발견하고 작동하는 결과물로 완성했습니다.','A project taken from a real problem to a working outcome.'))}</p><div class="tags">${tags(s)}</div></a></article>`}
+function homeProjects(){const projects=state.specs.filter(s=>s.category==='프로젝트');return (projects.length?projects:state.specs).slice(0,5)}
+function renderHome(){const p=state.profile,ps=homeProjects();$('#main').innerHTML=`
+<div class="wrap hero"><div><p class="eyebrow">Product engineer · AI & Graphics</p><h1><span class="line"><span>${t('아이디어를','Ideas into')}</span></span><span class="line"><span>${t('작동하는','working')}</span></span><span class="line"><span class="accent">${t('제품으로.','products.')}</span></span></h1><p class="lead">${t('AI, 모바일 앱, 백엔드와 컴퓨터 그래픽스를 연결해 사람이 실제로 사용할 수 있는 경험을 만듭니다.','I connect AI, mobile, backend, and computer graphics to build experiences people can actually use.')}</p><div class="hero-actions"><a class="button" href="#/project">${t('작업 보기','Explore work')} <span>↗</span></a><a class="button secondary" href="#/resume">${t('이력서 보기','View résumé')}</a></div></div><div class="hero-art" aria-hidden="true"><div class="orb"><i class="node n1"></i><i class="node n2"></i><i class="node n3"></i></div></div><span class="scroll-cue">Scroll to explore</span></div>
+<section class="statement"><div class="wrap statement-inner"><h2 aria-label="${t('좋은 아이디어를 데모에서 멈추지 않고, 사용 가능한 제품으로 완성합니다.','I take good ideas beyond demos and turn them into usable products.')}"><span>${t('좋은 아이디어를','Good ideas')}</span> <span>${t('데모에서 멈추지 않고,','go beyond demos,')}</span><br><span>${t('사용 가능한','becoming usable')}</span> <span class="special">${t('제품으로 완성합니다.','products.')}</span></h2></div></section>
+<section class="section rootive" id="rootive"><div class="wrap"><div class="section-head"><div><p class="eyebrow">Featured project 01</p><h2>My Little<br>Garden</h2></div><p>${t('식물 사진을 관리 행동으로 바꿉니다. 종 인식부터 상태 분석, 맞춤 가이드와 정원 기록까지 하나의 제품으로 연결했습니다.','Turning a plant photo into clear care actions—from recognition and health analysis to personalized guidance and a growing journal.')}</p></div><div class="project-stage"><div class="story-copy">${[['01',t('사진 한 장으로 식물을 인식합니다.','Recognize a plant from one photo.')],['02',t('상태와 질병 가능성을 함께 살핍니다.','Check health and possible disease.')],['03',t('결과를 이해하기 쉬운 행동으로 바꿉니다.','Turn results into clear actions.')],['04',t('관리 기록이 나만의 정원으로 쌓입니다.','Build a personal garden from care history.')]].map((x,i)=>`<div class="story-step ${i?'':'active'}" data-step="${i}"><strong>${x[0]} / 04</strong><h3>${x[1]}</h3><p>Mobile · Backend · AI · Product</p></div>`).join('')}</div><div class="phone-wrap"><div class="phone"><div class="phone-screen"><span class="eyebrow">MY LITTLE GARDEN</span><div class="plant">🌿</div><h4 id="phoneTitle">${t('식물을 촬영해 주세요','Take a plant photo')}</h4><p id="phoneCopy">${t('AI가 식물의 종류와 현재 상태를 살펴봅니다.','AI checks the species and current condition.')}</p><div class="progress">${[0,1,2,3].map(i=>`<i class="${i?'':'on'}"></i>`).join('')}</div></div></div></div></div><div class="system-flow"><div class="flow-node">Image</div><div class="flow-node">Species</div><div class="flow-node">Health</div><div class="flow-node">Growth</div><div class="flow-node">Guide</div></div><div class="metrics"><div class="metric"><b>15</b><span>${t('학습한 식물 종','Plant species trained')}</span></div><div class="metric"><b>4</b><span>${t('연결한 분석 단계','Connected analysis stages')}</span></div><div class="metric"><b>A1</b><span>${t('외부 AI 플랫폼 연동','External AI integration')}</span></div></div></div></section>
+<section class="dark-project"><div class="wrap"><div class="section-head"><div><p class="eyebrow">Featured project 02</p><h2>Path<br>Tracer</h2></div><p>${t('빛이 이동하는 과정을 직접 구현했습니다. 스크롤할수록 노이즈가 사라지며 최종 이미지가 만들어지는 과정을 보여줍니다.','A renderer built from the path of light. As you scroll, noise resolves into the final image.')}</p></div><div class="render-demo"><div class="render-labels"><span>Diffuse</span><span>Mirror</span><span>Dielectric</span><span>NEE</span></div><span class="spp">16 SPP</span></div></div></section>
+<section class="section"><div class="wrap"><div class="section-head"><div><p class="eyebrow">Selected work</p><h2>${t('문제를 제품으로','Problems into products')}</h2></div><p>${t('앱, AI, 백엔드, 그래픽스 사이의 경계를 넘나들며 끝까지 구현한 작업입니다.','End-to-end work across apps, AI, backend systems, and graphics.')}</p></div><div class="projects-grid">${ps.map(projectCard).join('')}</div><div style="text-align:center"><a class="button secondary" href="#/project">${t('모든 프로젝트 보기','View all projects')} →</a></div></div></section>
+<section class="section"><div class="wrap"><div class="section-head"><div><p class="eyebrow">Capabilities</p><h2>${t('기술보다','Beyond tools')}</h2></div><p>${t('기술 이름보다, 그 기술로 실제로 무엇을 완성할 수 있는지에 집중합니다.','I focus on what technology can complete—not the names of the tools.')}</p></div>${[[t('Product Engineering','Product Engineering'),t('아이디어를 화면, API, 데이터베이스와 배포까지 연결합니다.','I connect an idea to interfaces, APIs, data, and deployment.')],[t('AI & Vision','AI & Vision'),t('모델 결과가 사용자의 다음 행동으로 이어지는 파이프라인을 만듭니다.','I turn model output into pipelines that guide real user actions.')],[t('Graphics & Interaction','Graphics & Interaction'),t('빛과 움직임을 계산하고, 복잡한 기술을 직관적인 장면으로 설명합니다.','I compute light and motion, translating complex systems into intuitive scenes.')]].map(x=>`<div class="capability"><h3>${x[0]}</h3><p>${x[1]}</p></div>`).join('')}</div></section>
+<section class="wrap contact-finale"><p class="eyebrow">Contact</p><h2>${t('함께, 다음 제품을\n만들어 봅시다.','Let’s build the\nnext product.').replace('\n','<br>')}</h2><a class="button" href="mailto:${esc(p.email)}">${esc(p.email)} ↗</a></section>`}
+const cp=(key,fallback)=>state.copy?.[key]||fallback;
+function renderHomeV2(){const p=state.profile,featured=[...state.specs].sort((a,b)=>Number(!!b.image)-Number(!!a.image)).slice(0,6);$('#main').innerHTML=`
+<div class="wrap hero simple-hero"><div><p class="eyebrow">${esc(cp('hero_eyebrow','Product engineer · AI & Graphics'))}</p><h1><span class="line"><span>${esc(cp('hero_line_1',t('아이디어를','Ideas into')))}</span></span><span class="line"><span>${esc(cp('hero_line_2',t('작동하는','working')))}</span></span><span class="line"><span class="accent">${esc(cp('hero_line_3',t('제품으로.','products.')))}</span></span></h1><p class="lead">${esc(cp('hero_description',p.headline||''))}</p><div class="hero-actions"><a class="button" href="#/career">${esc(cp('hero_primary',t('프로젝트 보기','Explore projects')))} <span>↗</span></a><a class="button secondary" href="#/resume">${esc(cp('hero_secondary',t('이력서 보기','View résumé')))}</a></div></div><div class="hero-art" aria-hidden="true"><div class="orb"><i class="node n1"></i><i class="node n2"></i><i class="node n3"></i></div></div><span class="scroll-cue">Scroll to explore</span></div>
+<section class="section selected-simple"><div class="wrap"><div class="section-head"><div><p class="eyebrow">Selected</p><h2>${esc(cp('selected_title',t('경험과 결과','Experience & outcomes')))}</h2></div><p>${esc(cp('selected_description',t('제가 직접 참여하고 끝까지 구현한 프로젝트와 활동을 소개합니다.','Selected projects and activities I helped take through implementation.')))}</p></div><div class="projects-grid">${featured.map(projectCard).join('')}</div></div></section>
+<section class="section quiet-capabilities"><div class="wrap"><div class="section-head"><div><p class="eyebrow">Capabilities</p><h2>${esc(cp('capability_title',t('기술보다 가능성','Beyond tools')))}</h2></div><p>${esc(p.headline||'')}</p></div>${[[t('제품 개발','Product Engineering'),t('아이디어를 화면, API, 데이터와 배포까지 연결합니다.','Ideas connected through interface, API, data, and deployment.')],[t('AI와 비전','AI & Vision'),t('모델 결과를 사람이 이해할 수 있는 경험으로 바꿉니다.','Model output turned into understandable experiences.')],[t('그래픽스와 인터랙션','Graphics & Interaction'),t('복잡한 기술을 직관적인 장면과 움직임으로 설명합니다.','Complex technology explained through clear scenes and motion.')]].map(x=>`<div class="capability"><h3>${x[0]}</h3><p>${x[1]}</p></div>`).join('')}</div></section>
+<section class="wrap contact-finale"><p class="eyebrow">Contact</p><h2>${esc(cp('contact_title',t('함께, 다음 제품을 만들어 봅시다.','Let’s build the next product.')))}</h2><a class="text-cta" href="#/social">${t('연락 방법 보기','Get in touch')} ↗</a></section>`}
+function renderAbout(){const p=state.profile,edu=p.education?.[0]||{};const facts=[[t('이름','Name'),p.name],[t('직업','Role'),p.target_role],[t('현재','Current'),'Rootive CTO'],[t('학교','School'),edu.school],[t('전공','Major'),edu.major],[t('거주 지역','Location'),p.location],[t('관심 분야','Interests'),(p.interests||[]).join(' · ')]];$('#main').innerHTML=`<div class="about-profile"><section class="wrap about-profile-hero"><div class="about-profile-photo" aria-hidden="true"><span>SW</span><b></b><em></em><i></i></div><div class="about-profile-title"><p class="eyebrow">ABOUT · PROFILE</p><h1>${esc(p.name)}</h1><p>${esc(p.target_role||'')}</p><span>${esc(p.headline||'')}</span></div></section><section class="wrap about-profile-facts">${facts.filter(x=>x[1]).map((x,i)=>`<div class="about-fact" style="--delay:${i*.045}s"><span>${esc(x[0])}</span><strong>${esc(x[1])}</strong></div>`).join('')}</section><section class="wrap about-profile-skills"><p class="eyebrow">CAPABILITIES</p><div>${(p.core_strengths||[]).map(x=>`<span>${esc(x)}</span>`).join('')}</div></section><section class="wrap about-profile-contact"><p>${t('함께 만들 프로젝트가 있다면','Have something to build?')}</p><a href="#/social">${t('연락하기','Get in touch')} ↗</a></section></div>`}
+function renderProjects(){const all=state.specs;$('#main').innerHTML=`<section class="wrap page-hero"><p class="eyebrow">01 — Project</p><h1>${t('프로젝트','Projects')}</h1><p>${t(`${all.length}개의 활동과 프로젝트를 진행했습니다. 분야별 작업과 상세 기록을 확인할 수 있습니다.`,`Explore ${all.length} projects and activities, with context and detailed records.`)}</p></section><section class="wrap section" style="padding-top:20px"><div class="toolbar"><div class="filter-group"><button class="filter active" data-filter="all">${t('전체','All')} ${all.length}</button>${[...new Set(all.map(s=>s.category).filter(Boolean))].map(c=>`<button class="filter" data-filter="${esc(c)}">${esc(c)}</button>`).join('')}</div><div class="view-group"><button class="view-toggle ${state.view==='grid'?'active':''}" data-view="grid">Grid</button><button class="view-toggle ${state.view==='list'?'active':''}" data-view="list">List</button></div></div><div class="projects-grid project-list ${state.view==='list'?'list':''}">${all.map(projectCard).join('')}</div></section>`;wireProjects()}
+function wireProjects(){document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');const f=b.dataset.filter;document.querySelectorAll('.project-card').forEach((c,i)=>c.hidden=f!=='all'&&state.specs[i].category!==f)});document.querySelectorAll('.view-toggle').forEach(b=>b.onclick=()=>{state.view=b.dataset.view;localStorage.setItem('projectView',state.view);renderProjects()})}
+async function renderDetail(id){const s=state.specs.find(x=>x.id===id);if(!s)return render404();let body=s.body||'',translationMissing=false;if(state.lang==='en'){const translated=await loadMarkdown(`data/specs/en/${s.file}`);if(translated?.body)body=translated.body;else translationMissing=true}const tech=(s.tags||'').split(',').filter(Boolean),index=state.specs.indexOf(s),prev=state.specs[index-1],next=state.specs[index+1],links=[['GitHub',s.github],['Demo',s.demo],['Award',s.award_link],[s.link_label||t('관련 페이지','Related'),s.link]].filter(x=>x[1]);document.title=`${s.title} · 장석우`;$('#main').innerHTML=`<section class="wrap page-hero project-detail-hero"><a class="back" href="#/career">← ${t('이력으로 돌아가기','Back to experience')}</a><div class="project-kickers"><span class="project-status status-${esc((s.status||'completed').toLowerCase())}">${esc(statusLabel(s.status))}</span>${translationMissing?`<span class="translation-missing">${t('영문 문서 미작성','English version not written')}</span>`:''}</div><p class="eyebrow">${esc(s.category||'Project')} · ${fmt(s.date)}</p><h1>${esc(s.title||id)}</h1><p>${esc(s.short_description||s.organization||'')}</p><div class="detail-actions"><button class="mini-action" onclick="copyProjectLink()">${t('링크 복사','Copy link')}</button>${links.map(x=>`<a class="mini-action" target="_blank" rel="noopener" href="${esc(x[1])}">${esc(x[0])} ↗</a>`).join('')}</div></section><article class="wrap detail">${s.image?`<div class="detail-cover"><img loading="lazy" decoding="async" src="${esc(s.image)}" alt="${esc(s.title)}"></div>`:''}<section class="project-facts"><div><span>${t('진행 기간','Period')}</span><strong>${fmt(s.date)}</strong></div><div><span>${t('상태','Status')}</span><strong>${esc(statusLabel(s.status))}</strong></div><div><span>${t('기관·팀','Organization')}</span><strong>${esc(s.organization||t('개인 프로젝트','Personal project'))}</strong></div><div><span>${t('마지막 업데이트','Last updated')}</span><strong>${fmt(s.updated||s.date)}</strong></div></section><div class="detail-layout"><aside class="detail-index" id="detailToc"><span>CONTENTS</span></aside><div><div class="case-intro"><span>01</span><h2>${t('문제에서 결과까지','From problem to outcome')}</h2><p>${esc(s.short_description||'')}</p></div><div class="markdown" id="project-record">${window.marked?marked.parse(body):esc(body)}</div>${links.length?`<div id="project-links" class="project-link-buttons">${links.map(x=>`<a target="_blank" rel="noopener" href="${esc(x[1])}">${esc(x[0])}<span>↗</span></a>`).join('')}</div>`:''}</div></div><nav class="project-pagination" aria-label="${t('프로젝트 이동','Project navigation')}">${prev?`<a href="#/project/${encodeURIComponent(prev.id)}"><span>← ${t('이전','Previous')}</span><strong>${esc(prev.title)}</strong></a>`:'<span></span>'}${next?`<a class="next" href="#/project/${encodeURIComponent(next.id)}"><span>${t('다음','Next')} →</span><strong>${esc(next.title)}</strong></a>`:''}</nav></article>`;buildDetailToc();setTimeout(()=>{initExtraMotion()},20)}
+function buildDetailToc(){const toc=$('#detailToc'),root=$('#project-record');if(!toc||!root)return;const headings=[...root.querySelectorAll('h1,h2,h3')];headings.forEach((h,i)=>{h.id=h.id||`${slugify(h.textContent)}-${i+1}`;const b=document.createElement('button');b.textContent=h.textContent;b.className=`toc-h${h.tagName.slice(1)}`;b.onclick=()=>scrollDetail(h.id);toc.appendChild(b)})}
+async function copyProjectLink(){try{await navigator.clipboard.writeText(location.href);showToast(t('프로젝트 링크를 복사했습니다.','Project link copied.'))}catch{showToast(t('주소창의 링크를 복사해 주세요.','Copy the link from the address bar.'))}}
+function scrollDetail(id){document.getElementById(id)?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})}
+function renderCareer(){const groups=[...new Set(state.specs.map(s=>s.category).filter(Boolean))];$('#main').innerHTML=`<section class="wrap page-hero"><p class="eyebrow">02 — Experience</p><h1>${t('이력','Experience')}</h1><p>${t('배움과 실행, 그리고 팀과 함께 만든 결과를 시간순으로 정리했습니다.','A timeline of learning, execution, and outcomes built with teams.')}</p><a class="career-resume-link" href="#/resume"><span><b>${t('이력서','Résumé')}</b><small>${t('확인하거나 PDF로 저장하기','View or save as PDF')}</small></span><i>↗</i></a></section><section class="wrap section" style="padding-top:20px">${groups.map(g=>`<div style="margin-bottom:90px"><div class="toolbar"><h2>${esc(g)}</h2><span>${state.specs.filter(s=>s.category===g).length}${t('건',' items')}</span></div><div class="timeline">${state.specs.filter(s=>s.category===g).map(s=>`<a class="timeline-row ${s.image?'has-image':''}" href="#/project/${encodeURIComponent(s.id)}"><time>${fmt(s.date)}</time><div class="meta">${esc(s.organization||g)}</div><div><h3>${esc(s.title)}</h3><p>${esc(s.short_description||'')}</p></div>${s.image?`<img class="timeline-thumb" loading="lazy" decoding="async" src="${esc(s.image)}" alt="">`:''}</a>`).join('')}</div></div>`).join('')}</section>`}
+function renderSocial(){const p=state.profile;const emails=(p.emails||[p.email]);const custom=(p.social_links||[]).filter(x=>x.name&&x.url);const links=custom.map(x=>[x.name,x.label||x.url,x.url]);$('#main').innerHTML=`<section class="wrap page-hero"><p class="eyebrow">03 — Social</p><h1>${t('연락하기','Get in touch')}</h1><p>${t('새로운 제품, 기술, 협업에 관한 이야기를 언제든 환영합니다.','Always open to conversations about new products, technology, and collaboration.')}</p></section><section class="wrap section" style="padding-top:20px"><div class="social-grid"><button class="social-link magnetic email-card" onclick="openEmailPicker()"><b>Email</b><span>${t('사용할 이메일 주소 선택','Choose an email address')}</span><i>↗</i></button>${links.map(x=>`<a class="social-link magnetic" href="${esc(x[2])}" ${x[2].startsWith('http')?'target="_blank" rel="noopener"':''}><b>${esc(x[0])}</b><span>${esc(x[1])}</span><i>↗</i></a>`).join('')}</div></section><dialog class="email-picker" id="emailPicker"><div class="email-picker-head"><div><span>CONTACT</span><h2>${t('어떤 이메일로 연락할까요?','Choose an email')}</h2></div><button onclick="closeEmailPicker()" aria-label="${t('닫기','Close')}">×</button></div><div class="email-options">${[0,1,2].map(i=>emails[i]?`<div class="email-option"><a href="mailto:${esc(emails[i])}"><span>0${i+1}</span><strong>${esc(emails[i])}</strong><i>↗</i></a><button onclick="copyEmail('${esc(emails[i])}')" aria-label="${t('이메일 복사','Copy email')}">${t('복사','Copy')}</button></div>`:`<div class="disabled"><span>0${i+1}</span><strong>${t('이메일 주소 추가 예정','Email address to be added')}</strong></div>`).join('')}</div></dialog>`}
+async function copyEmail(email){try{await navigator.clipboard.writeText(email);showToast(t('이메일 주소를 복사했습니다.','Email address copied.'))}catch{showToast(email)}}
+function openEmailPicker(){const d=$('#emailPicker');if(d)d.showModal()}
+function closeEmailPicker(){const d=$('#emailPicker');if(d)d.close()}
+const pending=()=>`<span class="resume-pending">${t('정보 추가 예정','To be added')}</span>`;
+function resumeRows(items,render){return items.length?items.map(render).join(''):`<div class="resume-empty">${pending()}</div>`}
+function renderResume(){
+ const p=state.profile,projects=state.specs.filter(s=>s.category==='프로젝트'||/POC|개발|프로젝트|해커톤/i.test(s.title)).slice(0,8),career=[...(p.experience||[]).map(x=>({date:x.period,organization:x.organization,title:x.role,short_description:x.description})),...state.specs.filter(s=>s.category==='인턴십')],activities=state.specs.filter(s=>s.category==='대외활동'),awards=state.specs.filter(s=>s.category==='수상'),training=state.specs.filter(s=>s.category==='교육');
+ const emails=(p.emails||[p.email]).filter(Boolean);
+ const skills=Object.entries(p.skills||{});
+ $('#main').innerHTML=`<section class="wrap page-hero resume-hero"><p class="eyebrow">Résumé · Curriculum Vitae</p><h1>${t('이력서','Résumé')}</h1></section><article class="wrap resume">
+ <section class="resume-top"><div class="resume-identity">${p.profile_image?`<img src="${esc(p.profile_image)}" alt="${esc(p.name)} 프로필 사진">`:''}<div><h1>${esc(p.name)}</h1><p>${esc(p.target_role||'')}</p><strong>${esc(p.headline||'')}</strong></div></div><div class="resume-contact">${p.phone?`<p>${esc(p.phone)}</p>`:pending()}${emails.map(e=>`<p>${esc(e)}</p>`).join('')}<p>${esc(p.location||'')}</p><p>${esc(p.github_url||'')}</p>${p.portfolio_url?`<p>${esc(p.portfolio_url)}</p>`:''}</div></section>
+ <h2>01. ${t('자기소개','Profile')}</h2><div class="resume-summary"><p class="lead">${esc(p.about_text)}</p><dl><div><dt>${t('한 줄 소개','Headline')}</dt><dd>${esc(p.headline||'')||pending()}</dd></div><div><dt>${t('지원 직무','Target role')}</dt><dd>${esc(p.target_role||'')||pending()}</dd></div><div><dt>${t('핵심 역량','Core strengths')}</dt><dd>${(p.core_strengths||[]).map(esc).join(' · ')||pending()}</dd></div><div><dt>${t('관심 분야','Interests')}</dt><dd>${(p.interests||[]).map(esc).join(' · ')||pending()}</dd></div></dl></div>
+ <h2>02. ${t('학력','Education')}</h2>${resumeRows(p.education||[],e=>`<div class="resume-item"><b>${esc(e.period)}</b><div><strong>${esc(e.school)} · ${esc(e.major)}</strong><p>${esc(e.status)} ${e.gpa?'· GPA '+esc(e.gpa):''}</p><small>${(e.courses||[]).length?t('관련 과목: ','Relevant courses: ')+(e.courses||[]).map(esc).join(', '):''}</small></div></div>`)}
+ <h2>03. ${t('경력','Experience')}</h2>${resumeRows(career,s=>`<div class="resume-item"><b>${fmt(s.date)}</b><div><strong>${esc(s.organization)} · ${esc(s.title)}</strong><p>${esc(s.short_description||'')}</p><small>${t('담당 업무·사용 기술·성과는 상세 기록에서 확인','See detailed record for responsibilities, technologies, and outcomes')}</small></div></div>`)}
+ <h2>04. ${t('프로젝트','Projects')}</h2>${resumeRows(projects,s=>`<div class="resume-item"><b>${fmt(s.date)}</b><div><strong>${esc(s.title)}</strong><p>${esc(s.short_description||s.organization||'')}</p><small>${esc(s.organization||'')} ${s.link?'· '+esc(s.link):''}</small></div></div>`)}
+ <h2>05. ${t('기술','Skills')}</h2><div class="skill-matrix">${skills.map(([k,v])=>`<div><b>${esc(k)}</b><p>${(v||[]).map(esc).join(' · ')||pending()}</p></div>`).join('')}</div>
+ <h2>06. ${t('대외활동','Activities')}</h2>${resumeRows(activities,s=>`<div class="resume-item"><b>${fmt(s.date)}</b><div><strong>${esc(s.title)}</strong><p>${esc(s.organization)} · ${esc(s.short_description||'')}</p></div></div>`)}
+ <h2>07. ${t('수상 경력','Awards')}</h2>${resumeRows(awards,s=>`<div class="resume-item"><b>${fmt(s.date)}</b><div><strong>${esc(s.title)}</strong><p>${esc(s.organization)} · ${esc(s.short_description||'')}</p></div></div>`)}
+ <h2>08. ${t('교육 및 자격','Training & certifications')}</h2>${resumeRows(training,s=>`<div class="resume-item"><b>${fmt(s.date)}</b><div><strong>${esc(s.title)}</strong><p>${esc(s.organization)} · ${esc(s.short_description||'')}</p></div></div>`)}
+ <h2>09. ${t('어학 능력','Languages')}</h2>${resumeRows(p.languages||[],l=>`<div class="resume-item"><b>${esc(l.test||'')}</b><div><strong>${esc(l.score||'')}</strong><p>${esc(l.date||'')} · ${esc(l.speaking||'')}</p></div></div>`)}
+ <h2>10. ${t('선택 항목','Additional information')}</h2><div class="optional-grid">${[['research',t('논문·연구','Research')],['presentations',t('발표·강의','Presentations')],['startup',t('창업 경험','Startup')],['patents',t('특허','Patents')],['volunteer',t('봉사활동','Volunteering')]].map(([k,label])=>`<div><b>${label}</b><p>${(p.optional?.[k]||[]).map(esc).join(' · ')||pending()}</p></div>`).join('')}<div><b>${t('병역 사항','Military')}</b><p>${esc(p.optional?.military||'')||pending()}</p></div><div><b>${t('희망 근무 조건','Work preferences')}</b><p>${esc(p.optional?.work_preferences||'')||pending()}</p></div><div><b>${t('참고인','References')}</b><p>${(p.optional?.references||[]).map(esc).join(' · ')||pending()}</p></div></div>
+ </article><button class="button print-action" onclick="window.print()">${t('PDF로 저장','Save as PDF')}</button>`}
+async function renderResumeEditable(){const doc=await loadMarkdown(`data/resume/${state.lang}.md?v=3`);if(!doc){$('#main').innerHTML=`<section class="wrap page-hero"><h1>Résumé</h1><p>${t('이력서 Markdown 파일을 찾을 수 없습니다.','Resume Markdown file was not found.')}</p></section>`;return}const m=doc.metadata;$('#main').innerHTML=`<section class="wrap page-hero resume-hero"><p class="eyebrow">Résumé · Markdown</p></section><article class="wrap resume resume-editable"><header class="resume-top"><div><h1>${esc(m.name||'')}</h1><p>${esc(m.role||'')}</p></div><div class="resume-contact">${[m.phone,m.email,m.location,m.github,m.portfolio].filter(Boolean).map(x=>`<p>${esc(x)}</p>`).join('')}</div></header><div class="markdown resume-markdown">${window.marked?marked.parse(doc.body||''):esc(doc.body)}</div></article><button class="button print-action" onclick="window.print()">${t('PDF 다운로드·저장','Download / save PDF')}</button>`;prepareResumeMobile();setTimeout(initExtraMotion,20)}
+function prepareResumeMobile(){const root=$('.resume-markdown');if(!root)return;[...root.querySelectorAll(':scope>h2')].forEach((h,i)=>{const section=document.createElement('section'),body=document.createElement('div');section.className='resume-section'+(i<2?' open':'');body.className='resume-section-body';h.parentNode.insertBefore(section,h);section.appendChild(h);let node=section.nextSibling;while(node&&!(node.nodeType===1&&node.tagName==='H2')){const next=node.nextSibling;body.appendChild(node);node=next}section.appendChild(body);h.tabIndex=0;h.setAttribute('role','button');h.setAttribute('aria-expanded',i<2?'true':'false');const toggle=()=>{section.classList.toggle('open');h.setAttribute('aria-expanded',section.classList.contains('open'))};h.addEventListener('click',toggle);h.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}})})}
+function render404(){$('#main').innerHTML=`<section class="wrap page-hero"><p class="eyebrow">404</p><h1>${t('페이지를 찾을 수 없습니다.','Page not found.')}</h1><p><a class="button" href="#/">Home</a></p></section>`}
+function initAboutMotion(){
+ const canvas=$('#aboutCanvas'),chapters=$('.about-chapters');if(!canvas||!chapters)return;
+ const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,ctx=canvas.getContext('2d'),pointer={x:-9999,y:-9999},particles=[];
+ let w=0,h=0,dpr=Math.min(devicePixelRatio||1,1.5);
+ const resize=()=>{w=innerWidth;h=innerHeight;canvas.width=w*dpr;canvas.height=h*dpr;canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.setTransform(dpr,0,0,dpr,0,0)};
+ resize();addEventListener('resize',resize,{passive:true});
+ const count=reduced?0:(innerWidth<700?24:64);for(let i=0;i<count;i++)particles.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,r:1+Math.random()*2});
+ addEventListener('pointermove',e=>{pointer.x=e.clientX;pointer.y=e.clientY},{passive:true});
+ const frame=()=>{if(!canvas.isConnected)return;ctx.clearRect(0,0,w,h);const dark=document.documentElement.dataset.theme==='dark';ctx.strokeStyle=dark?'rgba(111,138,255,.13)':'rgba(49,87,246,.1)';ctx.fillStyle=dark?'rgba(111,138,255,.65)':'rgba(49,87,246,.5)';particles.forEach((p,i)=>{const dx=pointer.x-p.x,dy=pointer.y-p.y,d=Math.hypot(dx,dy);if(d<180){p.vx-=dx/Math.max(d,1)*.012;p.vy-=dy/Math.max(d,1)*.012}p.vx*=.995;p.vy*=.995;p.x+=p.vx;p.y+=p.vy;if(p.x<-10)p.x=w+10;if(p.x>w+10)p.x=-10;if(p.y<-10)p.y=h+10;if(p.y>h+10)p.y=-10;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();for(let j=i+1;j<particles.length;j++){const q=particles[j],dd=Math.hypot(p.x-q.x,p.y-q.y);if(dd<105){ctx.globalAlpha=1-dd/105;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();ctx.globalAlpha=1}}});requestAnimationFrame(frame)};frame();
+ const update=()=>{if(!chapters.isConnected)return;const r=chapters.getBoundingClientRect(),p=Math.max(0,Math.min(.999,-r.top/Math.max(1,r.height-innerHeight))),idx=Math.min(2,Math.floor(p*3));document.querySelectorAll('[data-about-chapter]').forEach((el,i)=>el.classList.toggle('active',i===idx));document.querySelectorAll('.about-chapter-words strong').forEach((el,i)=>el.classList.toggle('active',i===idx));const no=$('#aboutChapterNo');if(no)no.textContent='0'+(idx+1);chapters.style.setProperty('--about-progress',p);requestAnimationFrame(update)};update()
+}
+function initMotion(){const statement=$('.statement');if(statement&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const spans=statement.querySelectorAll('h2 span');addEventListener('scroll',()=>{const r=statement.getBoundingClientRect(),progress=Math.max(0,Math.min(1,-r.top/(r.height-innerHeight)));spans.forEach((s,i)=>s.classList.toggle('filled',progress>(i+1)/(spans.length+1)))},{passive:true})}const stage=$('.project-stage');if(stage){addEventListener('scroll',()=>{if(!stage.isConnected)return;const r=stage.getBoundingClientRect(),p=Math.max(0,Math.min(.999,-r.top/(r.height-innerHeight))),i=Math.floor(p*4);document.querySelectorAll('.story-step').forEach((x,n)=>x.classList.toggle('active',n===i));document.querySelectorAll('.progress i').forEach((x,n)=>x.classList.toggle('on',n<=i));const titles=[t('식물을 촬영해 주세요','Take a plant photo'),t('건강 상태를 분석했어요','Health analysis ready'),t('오늘은 물을 조금 주세요','A little water today'),t('나의 정원에 기록했어요','Saved to your garden')];const phoneTitle=$('#phoneTitle');if(phoneTitle)phoneTitle.textContent=titles[i]}, {passive:true})}const demo=$('.render-demo');if(demo){addEventListener('scroll',()=>{if(!demo.isConnected)return;const r=demo.getBoundingClientRect(),p=Math.max(0,Math.min(1,(innerHeight-r.top)/(innerHeight+r.height)));demo.style.setProperty('--noise',String(.8-p*.75));const spp=demo.querySelector('.spp');if(spp)spp.textContent=[16,64,256,1024][Math.min(3,Math.floor(p*4))]+' SPP'},{passive:true})}const orb=$('.orb');if(orb&&matchMedia('(pointer:fine)').matches){document.addEventListener('pointermove',e=>{if(!orb.isConnected)return;orb.style.transform=`translate(${(e.clientX/innerWidth-.5)*-18}px,${(e.clientY/innerHeight-.5)*-18}px) rotateX(${(e.clientY/innerHeight-.5)*-5}deg) rotateY(${(e.clientX/innerWidth-.5)*5}deg)`})}const cursor=$('.view-cursor');document.querySelectorAll('.view-target').forEach(el=>{el.onpointerenter=()=>cursor.style.opacity=1;el.onpointerleave=()=>cursor.style.opacity=0;el.onpointermove=e=>{cursor.style.left=e.clientX+'px';cursor.style.top=e.clientY+'px';cursor.style.transform='translate(-50%,-50%) scale(1)'}})}
+function initExtraMotion(){
+  initProfileParticles();
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const targets=document.querySelectorAll('.section-head,.project-card,.capability,.metric,.timeline-row,.social-link,.flow-node,.detail>*,.about-fast-intro>*,.about-fast-card,.about-fast-interests>*,.about-fast-footer>*,.about-profile-skills,.about-profile-contact,.resume-markdown>*');
+  targets.forEach((el,i)=>{el.classList.add('reveal');if(i%4)el.classList.add('reveal-delay-'+Math.min(i%4,3))});
+  if(reduced){targets.forEach(el=>el.classList.add('is-visible'));return}
+  const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
+    if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target)}
+  }),{threshold:.12,rootMargin:'0px 0px -7% 0px'});
+  targets.forEach(el=>observer.observe(el));
+  document.querySelectorAll('.metric b').forEach(el=>{
+    const value=el.textContent.trim();
+    if(!/^\d+$/.test(value))return;
+    const end=Number(value);
+    el.textContent='0';
+    const counter=new IntersectionObserver(entries=>{
+      if(!entries[0].isIntersecting)return;
+      const start=performance.now(),duration=850;
+      const tick=now=>{const p=Math.min(1,(now-start)/duration);el.textContent=Math.round(end*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(tick)};
+      requestAnimationFrame(tick);counter.disconnect()
+    },{threshold:.5});counter.observe(el)
   });
-}
-
-function toggleTheme(e) {
-  if (e) e.preventDefault();
-
-  const theme = document.documentElement.getAttribute('data-theme');
-  const newTheme = theme === 'dark' ? 'light' : 'dark';
-
-  document.documentElement.setAttribute('data-theme', newTheme);
-  localStorage.setItem('theme', newTheme);
-  updateThemeIcon();
-}
-
-// Utilities
-function parseFrontmatter(text) {
-  const result = { metadata: {}, body: text };
-
-  if (text.startsWith('---')) {
-    const parts = text.split('---');
-
-    if (parts.length >= 3) {
-      const header = parts[1];
-      result.body = parts.slice(2).join('---').trim();
-
-      header.split('\n').forEach(line => {
-        if (line.includes(':')) {
-          const [key, ...valueParts] = line.split(':');
-          const value = valueParts.join(':').trim().replace(/^["'](.*)["']$/, '$1');
-          result.metadata[key.trim()] = value;
-        }
-      });
-    }
-  }
-
-  return result;
-}
-
-// Data Loading
-async function initializeApp() {
-  try {
-    // Load Profile
-    appData.profile = window.PROFILE_DATA;
-
-    // Load Specs Index
-    const specsIdxRes = await fetch('data/specs/index.md');
-    if (specsIdxRes.ok) {
-      const specsIdxText = await specsIdxRes.text();
-      const specFiles = Array.from(specsIdxText.matchAll(/\[(.*?)\]\((.*?)\)/g)).map(m => m[2]);
-
-      const specPromises = specFiles.map(async (file) => {
-        const res = await fetch(`data/specs/${file}`);
-
-        if (res.ok) {
-          const text = await res.text();
-          const { metadata, body } = parseFrontmatter(text);
-
-          return {
-            id: decodeURIComponent(file), // 핵심 수정
-            file: file, // 원본 파일명 보관
-            title: metadata.title || decodeURIComponent(file),
-            organization: metadata.organization || '',
-            category: metadata.category || '기타',
-            date: metadata.date || '',
-            image: metadata.image || '',
-            link: metadata.link || '',
-            short_description: metadata.short_description || '',
-            description: body
-          };
-        }
-
-        return null;
-      });
-
-      appData.specs = (await Promise.all(specPromises)).filter(s => s !== null);
-    }
-
-    // Load Blog Index
-    const blogIdxRes = await fetch('data/posts/index.md');
-    if (blogIdxRes.ok) {
-      const blogIdxText = await blogIdxRes.text();
-      const blogFiles = Array.from(blogIdxText.matchAll(/\[(.*?)\]\((.*?)\)/g)).map(m => m[2]);
-
-      const blogPromises = blogFiles.map(async (file) => {
-        const res = await fetch(`data/posts/${file}`);
-
-        if (res.ok) {
-          const text = await res.text();
-          const { metadata, body } = parseFrontmatter(text);
-
-          return {
-            id: decodeURIComponent(file),
-            slug: decodeURIComponent(file),
-            file: file,
-            title: metadata.title || decodeURIComponent(file),
-            created_at: metadata.date || '',
-            category: metadata.category || '일반',
-            tags: metadata.tags ? metadata.tags.split(',').map(t => t.trim()) : [],
-            summary: metadata.summary || '',
-            content: body,
-            image: metadata.image || ''
-          };
-        }
-
-        return null;
-      });
-
-      appData.blog = (await Promise.all(blogPromises)).filter(b => b !== null);
-    }
-
-    updateProfilePanel(appData.profile);
-
-    window.addEventListener('hashchange', router);
-    router();
-
-    const theme = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', theme);
-    updateThemeIcon();
-
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    const themeToggleMobileBtn = document.getElementById('theme-toggle-mobile');
-
-    if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
-    if (themeToggleMobileBtn) themeToggleMobileBtn.addEventListener('click', toggleTheme);
-    initScrollNav();
-  } catch (e) {
-    console.error('Initialization error:', e);
-
-    const feed = document.getElementById('feed-content');
-    if (feed) {
-      feed.innerHTML = `
-        <div style="padding: 24px;">
-          <h2>시스템 초기화 중 오류가 발생했습니다.</h2>
-          <p>브라우저 개발자도구(F12) → Console 탭에서 오류를 확인해 주세요.</p>
-        </div>
-      `;
-    }
+  document.querySelectorAll('.timeline').forEach(line=>{
+    const draw=()=>{const r=line.getBoundingClientRect();const p=Math.max(0,Math.min(1,(innerHeight*.8-r.top)/Math.max(r.height,1)));line.style.setProperty('--timeline-progress',p*100+'%')};
+    addEventListener('scroll',draw,{passive:true});draw()
+  });
+  document.querySelectorAll('.magnetic,.button,.talk-btn').forEach(el=>{
+    if(el.dataset.magneticReady)return;el.dataset.magneticReady='1';
+    el.addEventListener('pointermove',e=>{const r=el.getBoundingClientRect();el.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.12}px,${(e.clientY-r.top-r.height/2)*.12}px)`});
+    el.addEventListener('pointerleave',()=>el.style.transform='')
+  });
+  if(!window.__prettyCursor&&matchMedia('(pointer:fine)').matches){
+    window.__prettyCursor=true;const core=$('.cursor-core'),ring=$('.cursor-ring');let rx=0,ry=0,tx=0,ty=0;
+    addEventListener('pointermove',e=>{tx=e.clientX;ty=e.clientY;core.style.left=tx+'px';core.style.top=ty+'px';core.style.opacity='1';ring.style.opacity='1';ring.classList.toggle('hovering',!!e.target.closest('a,button,.project-card'))},{passive:true});
+    const follow=()=>{rx+=(tx-rx)*.16;ry+=(ty-ry)*.16;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(follow)};follow();
+    addEventListener('pointerleave',()=>{core.style.opacity='0';ring.style.opacity='0'})
   }
 }
-
-// Router Logic
-async function router() {
-  const hash = window.location.hash || '#/';
-  const content = document.getElementById('feed-content');
-
-  if (!content) return;
-
-  window.scrollTo(0, 0);
-
-  if (hash === '#/' || hash === '#' || hash === '') {
-    content.innerHTML = Renderer.Home(appData.profile, appData.specs, appData.blog);
-
-  } else if (hash === '#/about') {
-    content.innerHTML = Renderer.About(appData.profile);
-
-  } else if (hash.startsWith('#/specs')) {
-    const pathParts = hash.split('?')[0].split('/');
-
-    if (pathParts.length === 3 && pathParts[2]) {
-      const id = decodeURIComponent(pathParts[2]);
-      const spec = appData.specs.find(s => s.id === id);
-
-      if (spec) {
-        const htmlContent = marked.parse(spec.description || '');
-        content.innerHTML = Renderer.SpecDetail(spec, htmlContent);
-
-        if (window.hljs) hljs.highlightAll();
-      } else {
-        content.innerHTML = `<div style="padding:24px;">스펙을 찾을 수 없습니다.</div>`;
-      }
-    } else {
-      content.innerHTML = Renderer.Specs(appData.specs);
-    }
-
-  } else if (hash.startsWith('#/blog')) {
-    const pathParts = hash.split('?')[0].split('/');
-
-    if (pathParts.length === 3 && pathParts[2]) {
-      const slug = decodeURIComponent(pathParts[2]);
-      const post = appData.blog.find(p => p.slug === slug);
-
-      if (post) {
-        const htmlContent = marked.parse(post.content || '');
-        content.innerHTML = Renderer.PostDetail(post, htmlContent, appData.profile);
-
-        if (window.hljs) hljs.highlightAll();
-      } else {
-        content.innerHTML = `<div style="padding:24px;">포스트를 찾을 수 없습니다.</div>`;
-      }
-    } else {
-      content.innerHTML = Renderer.Blog(appData.blog, appData.profile);
-    }
-
-  } else if (hash === '#/contact') {
-    content.innerHTML = Renderer.Contact(appData.profile);
-
-  } else {
-    content.innerHTML = `<div style="padding:24px;"><h2>404 - Not Found</h2></div>`;
-  }
+function initProfileParticles(){
+  const box=$('.about-profile-photo');if(!box||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const main=box.querySelector(':scope>span'),nodes=[...box.querySelectorAll('em,i')];if(!main||!nodes.length)return;
+  const make=(el,index,repel)=>({el,index,repel,x:0,y:0,vx:0,vy:0,tx:0,ty:0,nextTarget:0,ready:false,seed:Math.random()*Math.PI*2,speed:repel?1.08:1.12+index*.16});
+  const particles=[make(main,0,true),...nodes.map((el,index)=>make(el,index+1,false))];
+  const pointer={x:-9999,y:-9999,active:false};
+  const measure=p=>{const w=box.clientWidth,h=box.clientHeight,ew=p.el.offsetWidth,eh=p.el.offsetHeight,maxX=Math.max(0,w-ew),maxY=Math.max(0,h-eh);if(!p.ready){p.x=maxX*(p.repel?.5:.18+p.index*.27)%Math.max(1,maxX);p.y=maxY*(p.repel?.5:.72-p.index*.19)%Math.max(1,maxY);p.ready=true}p.x=Math.max(0,Math.min(maxX,p.x));p.y=Math.max(0,Math.min(maxY,p.y));return{w,h,ew,eh,maxX,maxY}};
+  const move=e=>{const r=box.getBoundingClientRect();pointer.x=e.clientX-r.left;pointer.y=e.clientY-r.top;pointer.active=e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom};
+  const leave=()=>pointer.active=false;box.addEventListener('pointermove',move,{passive:true});box.addEventListener('pointerleave',leave,{passive:true});
+  let previous=performance.now();const frame=now=>{if(!box.isConnected)return;const dt=Math.min(1.6,(now-previous)/16.67);previous=now;particles.forEach(p=>{const {w,ew,eh,maxX,maxY}=measure(p),toTarget=Math.hypot(p.tx-p.x,p.ty-p.y);if(now>p.nextTarget||toTarget<Math.max(18,w*.055)){const inset=p.repel?0:.025;p.tx=(inset+Math.random()*(1-inset*2))*maxX;p.ty=(inset+Math.random()*(1-inset*2))*maxY;p.nextTarget=now+2200+Math.random()*2200}const dxTarget=p.tx-p.x,dyTarget=p.ty-p.y,targetDistance=Math.hypot(dxTarget,dyTarget),cruise=Math.min(p.speed,.28+targetDistance*.014),targetVX=dxTarget/Math.max(targetDistance,1)*cruise,targetVY=dyTarget/Math.max(targetDistance,1)*cruise;p.vx+=(targetVX-p.vx)*.038*dt;p.vy+=(targetVY-p.vy)*.038*dt;const margin=Math.max(14,w*.045),edge=.085*dt;if(p.x<margin)p.vx+=(1-p.x/margin)*edge;if(p.x>maxX-margin)p.vx-=(1-(maxX-p.x)/margin)*edge;if(p.y<margin)p.vy+=(1-p.y/margin)*edge;if(p.y>maxY-margin)p.vy-=(1-(maxY-p.y)/margin)*edge;if(p.repel&&pointer.active){const dx=p.x+ew/2-pointer.x,dy=p.y+eh/2-pointer.y,d=Math.hypot(dx,dy),range=Math.max(170,w*.74);if(d<range){const eased=(1-d/range)**2,force=eased*.27*dt;p.vx+=dx/Math.max(d,1)*force;p.vy+=dy/Math.max(d,1)*force;p.tx=Math.max(0,Math.min(maxX,p.tx+dx/Math.max(d,1)*w*.018));p.ty=Math.max(0,Math.min(maxY,p.ty+dy/Math.max(d,1)*w*.018))}}const limit=p.repel?1.8:1.9+p.index*.1,speed=Math.hypot(p.vx,p.vy);if(speed>limit){p.vx=p.vx/speed*limit;p.vy=p.vy/speed*limit}p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.x<0){p.x=0;p.vx=Math.abs(p.vx)*.38}if(p.x>maxX){p.x=maxX;p.vx=-Math.abs(p.vx)*.38}if(p.y<0){p.y=0;p.vy=Math.abs(p.vy)*.38}if(p.y>maxY){p.y=maxY;p.vy=-Math.abs(p.vy)*.38}p.el.style.transform=`translate3d(${p.x.toFixed(2)}px,${p.y.toFixed(2)}px,0)`});requestAnimationFrame(frame)};requestAnimationFrame(frame)
 }
-
-// Start
-document.addEventListener('DOMContentLoaded', initializeApp);
-
-function initScrollNav() {
-  let lastScrollTop = 0;
-  const delta = 10;
-  const bottomNav = document.querySelector('.bottom-nav');
-  if (!bottomNav) return;
-  window.addEventListener('scroll', () => {
-    let st = window.pageYOffset || document.documentElement.scrollTop;
-    if (Math.abs(lastScrollTop - st) <= delta) return;
-    if (st > lastScrollTop && st > 100) bottomNav.classList.add('nav-hidden');
-    else bottomNav.classList.remove('nav-hidden');
-    lastScrollTop = st;
-  }, { passive: true });
-}
+document.addEventListener('DOMContentLoaded',init);

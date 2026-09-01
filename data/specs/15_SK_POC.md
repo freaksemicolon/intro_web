@@ -1,10 +1,13 @@
 ---
+status: completed
+updated: 2026-08-26
 title: SK POC활동
 organization: SK intellx
 category: 대외활동
 date: 2026-08-10
 short_description: NamuX 제품 기반 서비스 검증을 위한 POC 프로젝트 참여
 link: https://www.namuhx.com/product/
+link_label: NamuX 제품 페이지
 ---
 
 # 프로젝트 개요
@@ -16,4 +19,3 @@ SK intellx와 협력하여 **NamuX 제품 기반 서비스 검증(POC, Proof of 
 
 대학생 팀으로는 최초로 진행된 POC 프로젝트로,  
 실제 산업 환경에서 서비스 구현 및 검증 경험을 수행했습니다.
-

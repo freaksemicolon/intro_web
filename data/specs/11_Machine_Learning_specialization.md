@@ -1,4 +1,6 @@
 ---
+status: completed
+updated: 2026-04-09
 title: Machine Learning Specialization (Stanford / Andrew Ng) 수료
 organization: 스탠포드 대학교
 category: 교육

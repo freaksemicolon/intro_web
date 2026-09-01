@@ -1,4 +1,6 @@
 ---
+status: completed
+updated: 2026-04-09
 title: 제 13회 CSG AI&IOT 메이커톤 GIST 창업 진흥센터장상 수상
 organization: 광주과학기술원 창업진흥센터
 category: 수상
