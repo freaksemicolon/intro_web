@@ -136,3 +136,4 @@ html[lang=en] .section-head h2,html[lang=en] .page-hero h1{overflow-wrap:normal;
 .resume-contact p{overflow-wrap:anywhere;word-break:break-word}
 @media(max-width:900px){.hero .scroll-cue{display:none}.social-link{min-height:145px;padding:25px;border-radius:22px}.social-link b{font-size:24px}.social-link i{font-size:22px}.timeline-row{width:100%;min-width:0}}
 @media(max-width:520px){.social-link{min-height:132px;padding:22px}.social-link b{font-size:21px}.social-link span{font-size:13px;line-height:1.45}.footer div{flex-wrap:wrap;row-gap:12px}}
+.view-cursor{display:none!important}
