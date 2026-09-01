@@ -131,9 +131,13 @@ html[lang=en] .section-head h2,html[lang=en] .page-hero h1{overflow-wrap:normal;
 
 /* Final responsive layout fixes */
 .hero{position:relative}.hero .scroll-cue{left:0;bottom:24px;z-index:3;white-space:nowrap}.simple-hero+.selected-simple{position:relative;z-index:1}
+.simple-hero h1{font-size:clamp(42px,4.25vw,68px);line-height:1.06;letter-spacing:-.04em;max-width:100%;margin:20px 0 26px}.simple-hero .lead{max-width:600px;font-size:clamp(17px,1.45vw,21px)}
+html[lang=en] .simple-hero h1{font-size:clamp(38px,3.55vw,56px);line-height:1.08;letter-spacing:-.035em}
 .social-grid{min-width:0}.social-link{width:100%;min-width:0;max-width:100%;overflow:hidden}.social-link span{display:block;max-width:100%;overflow-wrap:anywhere;word-break:break-word}.social-link b,.social-link i{flex-shrink:0}
 .timeline-row>*,.project-card,.project-card a,.resume-top>div{min-width:0}.timeline-row h3,.timeline-row p,.project-card h3,.project-card p{overflow-wrap:anywhere}
 .resume-contact p{overflow-wrap:anywhere;word-break:break-word}
 @media(max-width:900px){.hero .scroll-cue{display:none}.social-link{min-height:145px;padding:25px;border-radius:22px}.social-link b{font-size:24px}.social-link i{font-size:22px}.timeline-row{width:100%;min-width:0}}
+@media(max-width:900px){.simple-hero{min-height:92svh;padding-top:110px;padding-bottom:58px}.simple-hero h1{font-size:clamp(40px,8.5vw,62px);line-height:1.06;max-width:12ch;margin-block:17px 23px}.simple-hero .lead{font-size:17px;line-height:1.55;max-width:34rem}.simple-hero .hero-actions{margin-top:28px}}
 @media(max-width:520px){.social-link{min-height:132px;padding:22px}.social-link b{font-size:21px}.social-link span{font-size:13px;line-height:1.45}.footer div{flex-wrap:wrap;row-gap:12px}}
+@media(max-width:520px){.simple-hero{min-height:auto;padding-top:96px;padding-bottom:54px}.simple-hero h1{font-size:clamp(35px,10.7vw,48px);line-height:1.08;letter-spacing:-.04em;max-width:none}.simple-hero .lead{font-size:15px;line-height:1.6}.simple-hero .hero-actions{margin-top:23px;gap:9px}}
 .view-cursor{display:none!important}
