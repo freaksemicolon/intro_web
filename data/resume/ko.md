@@ -4,13 +4,13 @@ role: Product Engineer · Rootive CTO
 email: janghh1228@gm.gist.ac.kr
 phone:
 location: 대한민국 광주
-github: https://github.com/freaksemicolon
-portfolio:
+github: https://github.com/JangSW52
+portfolio: https://www.jangsw.com/
 ---
 
 ## 소개
 
-모바일, 백엔드, AI와 그래픽스를 연결해 아이디어를 실제 제품으로 완성합니다.
+AI, 앱, 백엔드와 다양한 기술을 연결해 아이디어를 실제 제품으로 완성합니다.
 
 ## 경력
 
@@ -55,7 +55,7 @@ portfolio:
 ## 기술
 
 - 프로그래밍 언어: JavaScript, TypeScript, Python, C++
-- 프레임워크: React, React Native, Django, FastAPI
+- 프레임워크: React, React Native, Django, FastAPI 등
 - AI·데이터: Machine Learning, Computer Vision, MediaPipe, AI Agent
 - 도구: Git, GitHub, Docker, Figma, Notion
 

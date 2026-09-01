@@ -7,23 +7,24 @@ window.PROFILE_DATA = {
     "email": "janghh1228@gm.gist.ac.kr",
     "emails": [
         "janghh1228@gm.gist.ac.kr",
-        "",
-        ""
+        "janghh1228@gmail.com",
+        "jang1228@rootive.org"
     ],
     "phone": "",
     "location": "대한민국 광주",
-    "github_url": "https://github.com/freaksemicolon",
-    "portfolio_url": "",
+    "github_url": "https://github.com/JangSW52",
+    "portfolio_url": "https://www.jangsw.com/",
     "linkedin_url": "",
     "instagram_url": "",
     "social_links": [
-        { "name": "GitHub", "url": "https://github.com/freaksemicolon" },
+        { "name": "GitHub", "url": "https://github.com/JangSW52" },
         { "name": "LinkedIn", "url": "https://www.linkedin.com/in/jangsw" },
-        { "name": "Notion", "url": "https://www.notion.so/2cc06524c5d780bb836ec2ebe2f531fc?source=copy_link" }
+        { "name": "Notion", "url": "https://jangsw52.notion.site/3ce06524c5d78049911ff3cf6941b24d" },
+        { "name": "Instagram", "url": "https://www.instagram.com/jangsw52/" }
     ],
-    "notion_url": "https://www.notion.so/2cc06524c5d780bb836ec2ebe2f531fc?source=copy_link",
+    "notion_url": "https://jangsw52.notion.site/3ce06524c5d78049911ff3cf6941b24d",
     "profile_image": "data/face.jpg",
-    "headline": "AI, 앱, 백엔드와 그래픽스를 연결해 아이디어를 실제 제품으로 완성합니다.",
+    "headline": "AI, 앱, 백엔드와 다양한 기술을 연결해 아이디어를 실제 제품으로 완성합니다.",
     "target_role": "Product Engineer · Software Engineer",
     "core_strengths": ["End-to-end 제품 개발", "AI·Vision 파이프라인", "인터랙티브 그래픽스"],
     "interests": ["AI Agent", "Computer Vision", "Product Engineering", "Computer Graphics"],

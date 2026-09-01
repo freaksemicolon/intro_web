@@ -4,13 +4,13 @@ role: Product Engineer · CTO at Rootive
 email: janghh1228@gm.gist.ac.kr
 phone:
 location: Gwangju, South Korea
-github: https://github.com/freaksemicolon
-portfolio:
+github: https://github.com/JangSW52
+portfolio: https://www.jangsw.com/
 ---
 
 ## Profile
 
-I connect mobile, backend, AI, and graphics to turn ideas into working products.
+I connect AI, apps, backend systems, and a broad range of technologies to turn ideas into working products.
 
 ## Experience
 
@@ -55,7 +55,7 @@ I connect mobile, backend, AI, and graphics to turn ideas into working products.
 ## Skills
 
 - Languages: JavaScript, TypeScript, Python, C++
-- Frameworks: React, React Native, Django, FastAPI
+- Frameworks: React, React Native, Django, FastAPI, and more
 - AI and data: Machine Learning, Computer Vision, MediaPipe, AI Agent
 - Tools: Git, GitHub, Docker, Figma, Notion
 
